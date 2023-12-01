@@ -1,0 +1,12 @@
+{
+  "name": "eleventy-auto-cache-buster",
+  "version": "0.1.0",
+  "description": "Busts cache using ?v= with minimal configuration!",
+  "main": "11tyAutoCacheBuster.js",
+  "repository": "https://github.com/Denperidge/eleventy-auto-cache-buster.git",
+  "author": "Denperidge",
+  "license": "MIT",
+  "dependencies": {
+    "glob": "^10.3.10"
+  }
+}
