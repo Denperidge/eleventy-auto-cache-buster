@@ -17,11 +17,11 @@ jobs:
         with:
           node-version: 20
 
-      - run: npm ci
+      - run: yarn install --immutable
 
       - uses: ncipollo/release-action@v1.12.0
         with:
-          artifacts: "11tyAutoCacheBuster"
+          artifacts: 11tyAutoCacheBuster.js
 
   npm-publish:
     runs-on: ubuntu-latest
@@ -33,9 +33,10 @@ jobs:
           node-version: 20
           registry-url: https://registry.npmjs.org/
 
-      - run: npm ci
+      - run: yarn install --immutable
 
-      - run: npm publish
+      - run: yarn publish
         env:
-          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
   
