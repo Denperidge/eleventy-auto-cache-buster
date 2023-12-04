@@ -2,7 +2,10 @@ const fs = require("fs");
 const crypto = require("crypto");
 const glob = require("glob");
 
-function hash(content, algorithm="md5") {
+let enableLogging = false;
+let algorithm = "md5";
+
+function hash(content) {
     const currentHash = crypto.createHash(algorithm);
     currentHash.setEncoding("hex");
     currentHash.write(content);
@@ -11,11 +14,15 @@ function hash(content, algorithm="md5") {
 }
 
 function logRegular(string) {
-    console.log(string);
+    if (enableLogging) {
+        console.log(string);
+    }
 }
 
 function _logColour(string, colourCode) {
-    console.log(`\x1b[${colourCode}m${string} \x1b[0m`);
+    if (enableLogging) {
+        console.log(`\x1b[${colourCode}m${string} \x1b[0m`);
+    }
 }
 
 function logGreen(string) {
@@ -30,15 +37,31 @@ function logRed(string) {
     _logColour(string, "31");
 }
 
+const defaultOptions = {
+    globstring: "**/*.{css,js,png,jpg,jpeg,gif,mp4,ico}",
+    enableLogging: enableLogging,
+    hashAlgorithm: algorithm,
+    hashFunction: hash,
+}
 
-module.exports = function(eleventyConfig, globstring="**/*.{css,js,png,jpg,jpeg,gif,mp4,ico}") {
+module.exports = function(eleventyConfig, options=defaultOptions) {
     eleventyConfig.on("eleventy.after", async ({ dir, results, runMode, outputMode }) => {
+
+        // Override default options with set options
+        options = Object.assign(defaultOptions, options);
+
+        // Set options to globals
+        enableLogging = options.enableLogging;
+        algorithm = options.hashAlgorithm;
+        const globstring = options.globstring;
+        const hashFunction = options.hashFunction;
+
         const assetPaths = [];
         logYellow(`[ACB] Collecting assets & calculating hashes using ${globstring}...`);
         (await glob.glob(dir.output + "/" + globstring)).forEach((assetPath) => {
             assetPath = assetPath.replace(/\\/g, "/")
             logGreen(`[ACB] ${assetPath} is an asset! Calculating hash...`);
-            const assetHash = hash(fs.readFileSync(assetPath));
+            const assetHash = hashFunction(fs.readFileSync(assetPath));
             logGreen(`[ACB] ${assetPath} hash = ${assetHash}`);
 
             assetPaths.push({
