@@ -43,6 +43,7 @@ module.exports = function (eleventyConfig) {
     });
     // ...
 }
+```
 
 
 ## License
