@@ -16,17 +16,22 @@ Into...
 ### Getting started
 1. Install the plugin
     - Yarn: `yarn add -D eleventy-auto-cache-buster`
-    - Npm: `npm --save-dev eleventy-auto-cache-buster`
+    - Npm: `npm install --save-dev eleventy-auto-cache-buster`
 2. Enable the plugin
     ```js
     // .eleventy.js
+    
     const eleventyAutoCacheBuster = require("eleventy-auto-cache-buster");
+    
+    // Alternatively, you can use ESM
+    import eleventyAutoCacheBuster from "eleventy-auto-cache-buster";
 
     module.exports = function (eleventyConfig) {
         eleventyConfig.addPlugin(eleventyAutoCacheBuster);
         // ...
     }
     ```
+    
 3. That's it! No further changes are required.
 
 ### Changing options
