@@ -39,6 +39,7 @@ function logRed(string) {
 
 const defaultOptions = {
     globstring: "**/*.{css,js,png,jpg,jpeg,gif,mp4,ico}",
+    hashTruncate: 12,
     enableLogging: enableLogging,
     hashAlgorithm: algorithm,
     hashFunction: hash,
@@ -50,11 +51,18 @@ module.exports = function(eleventyConfig, options=defaultOptions) {
         // Override default options with set options
         options = Object.assign(defaultOptions, options);
 
+        const globstring = options.globstring;
+        const hashTruncate = options.hashTruncate;
+        const hashFunction = options.hashFunction;
         // Set options to globals
         enableLogging = options.enableLogging;
         algorithm = options.hashAlgorithm;
-        const globstring = options.globstring;
-        const hashFunction = options.hashFunction;
+
+        if (hashTruncate > 0) {
+            logRegular(`[ACB] Truncating hash to ${hashTruncate}`);
+        } else {
+            logRegular(`[ACB] hashTruncate smaller than or equal to 0, disabling truncation`);
+        }
 
         const assetPaths = [];
         logYellow(`[ACB] Collecting assets & calculating hashes using ${globstring}...`);
@@ -86,11 +94,15 @@ module.exports = function(eleventyConfig, options=defaultOptions) {
                 }
                 // Save the output data
                 outputData = data;
-
                 
                 assetPaths.forEach(({assetPath, assetHash}) => {
                     if (data.includes(assetPath)) {
                         logGreen(`[ACB] ${outputPath} contains asset ${assetPath}`)
+
+                        if (hashTruncate > 0) {
+                            assetHash = assetHash.substring(0, hashTruncate);
+                        }
+
                         outputData = outputData.replace(assetPath, assetPath + "?v=" + assetHash);
                         outputChanged = true;
                         

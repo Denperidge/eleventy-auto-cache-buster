@@ -42,6 +42,7 @@ const eleventyAutoCacheBuster = require("eleventy-auto-cache-buster");
 module.exports = function (eleventyConfig) {
     eleventyConfig.addPlugin(eleventyAutoCacheBuster, {
         enableLogging: true,  // Whether to enable eleventy-auto-cache-buster logging.
+        hashTruncate: 0,  // Desired substring length of the hash. Set to 0 or lower to disable truncating
         globstring: "**/*.ico",  // What glob string is used to locate assets.
         hashAlgorithm: "sha1",  // What hash method to pass to the hash function. See Node.js' crypto.createHash documentation.
         hashFunction: function (content) { return "example" }  // What function to run to calculate hashes. Overrides hashAlgorithm.
