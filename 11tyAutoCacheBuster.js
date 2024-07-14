@@ -103,7 +103,7 @@ module.exports = function(eleventyConfig, options=defaultOptions) {
                             assetHash = assetHash.substring(0, hashTruncate);
                         }
 
-                        outputData = outputData.replaceAll(`${assetPath}?v=${assetHash}`);
+                        outputData = outputData.replaceAll(assetPath, `${assetPath}?v=${assetHash}`);
                         outputChanged = true;
                         
                     } else {
