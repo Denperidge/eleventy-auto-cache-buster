@@ -7,7 +7,7 @@
   "author": "Denperidge",
   "license": "MIT",
   "scripts": {
-    "test": "pushd tests && ava & popd"
+    "test": "ava"
   },
   "dependencies": {
     "glob": "^10.3.10"

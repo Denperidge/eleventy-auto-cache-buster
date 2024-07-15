@@ -2,14 +2,19 @@ import test from "ava";
 import { readFileSync, rmSync } from "fs";
 import { execSync } from "child_process";
 import { JSDOM } from "jsdom";
+import { env } from "process";
 
 // Build utils
-rmSync("out/", { recursive: true })
+const DIR_TEST = "tests/"
+const OUT_DIR = DIR_TEST + "out/" 
+
+rmSync(OUT_DIR, { recursive: true, force: true })
 
 function buildEleventy(truncate=16) {
 	// I tried using Eleventy programmatically. Emphasis on tried
-	execSync("npx @11ty/eleventy", { env: { TRUNCATE:truncate }});
-	const outputHtml = readFileSync(`out/${truncate}/test/index.html`, { encoding: "utf-8" });
+	// Thanks to https://github.com/actions/setup-node/issues/224#issuecomment-943531791
+	execSync("npx @11ty/eleventy", { env: { ...env, TRUNCATE:truncate }, cwd: DIR_TEST});
+	const outputHtml = readFileSync(`${OUT_DIR}${truncate}/test/index.html`, { encoding: "utf-8" });
 	const dom = (new JSDOM(outputHtml));
 	return dom.window.document;
 }
