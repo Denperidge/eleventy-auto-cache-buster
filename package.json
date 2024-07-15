@@ -7,7 +7,7 @@
   "author": "Denperidge",
   "license": "MIT",
   "scripts": {
-    "test": "ava"
+    "test": "ava tests/*.mjs"
   },
   "dependencies": {
     "glob": "^10.3.10"

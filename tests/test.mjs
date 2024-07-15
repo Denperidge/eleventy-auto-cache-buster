@@ -4,6 +4,10 @@ import { execSync } from "child_process";
 import { JSDOM } from "jsdom";
 import { env } from "process";
 
+/**
+ * URLS in this refer to src or href or whatever
+ */
+
 // Build utils
 const DIR_TEST = "tests/"
 const OUT_DIR = DIR_TEST + "out/" 
@@ -32,36 +36,171 @@ function hash(string) {
 	}
 	return string.substring(paramIndex + 3)
 }
-function href(document, id) {
-	return _getAttribute(document, id, "href");
+
+function getUrl(document, id) {
+	if (id.includes("css")) {
+		return _getAttribute(document, id, "href");
+	} else if (id.includes("js") || id.includes("img")) {
+		return _getAttribute(document, id, "src");
+	} else {
+		throw Error("No url getter defined for " + id)
+	}
+
 }
+
+
+function elementIdsToUrlsAndHashArrays(document, ids) {
+	const attrs = [];
+	const hashes = [];
+	ids.forEach((id) => {
+		const attr = getUrl(document, id);
+		attrs.push(attr);
+		hashes.push(hash(attr));
+	});
+	return [attrs, hashes];
+}
+
+function removeDuplicatesFromArray(arr) {
+	return Array.from(new Set(arr));
+}
+
 
 // Tests
 // "1css & 3css hrefs =/=, hashes =="
-const differentHrefsDifferentHashes = test.macro({
-	exec(t, document, id1, id2) {
-		t.notDeepEqual(href(document, id1), href(document, id2))
-		t.notDeepEqual(hash(href(document, id1)), hash(href(document, id2)))
+const differentUrlsDifferentHashes = test.macro({
+	exec(t, document, ids) {
+		const [urls, hashes] = elementIdsToUrlsAndHashArrays(document, ids)
+		console.log(`Checking for different hrefs, same hashes (${ids})`)
+		console.log("-----------------------------------------")
+
+		// No duplicate hrefs
+		t.deepEqual(
+			urls.length,
+			removeDuplicatesFromArray(urls).length
+		);
+
+		console.log("URLS:", urls)
+		console.log("URLS (duplicates removed):", removeDuplicatesFromArray(urls))
+		console.log("URLS length:", urls.length)
+		console.log("URLS length (duplicates removed):", removeDuplicatesFromArray(urls).length)
+
+		console.log();
+
+		// No duplicate hashes
+		t.deepEqual(
+			hashes.length,
+			removeDuplicatesFromArray(hashes).length
+		);
+		
+		console.log("Hashes:", hashes)
+		console.log("Hashes (duplicates removed):", removeDuplicatesFromArray(hashes))
+		console.log("Hashes length:", hashes.length)
+		console.log("Hashes length (duplicates removed):", removeDuplicatesFromArray(hashes).length)
+
+		console.log();
+		
 	},
-	title(providedTitle = "", document, id1, id2) {
-		return `${providedTitle} ${id1}.href =/= ${id2}.href, ${id1}.hash =/= ${id2}.hash`;
+	title(providedTitle = "", document, ids) {
+		return `${providedTitle} ${ids}: different {href,src}, different hashes`;	
 	}
 });
 
 // "1css & 2css hrefs =/=, hashes =="
-const differentHrefSameHashes = test.macro({
-	exec(t, document, id1, id2){
-		t.notDeepEqual(href(document, id1), href(document, id2))
-		t.deepEqual(hash(href(document, id1)), hash(href(document, id2)))
+const differentUrlsSameHashes = test.macro({
+	exec(t, document, ids){
+		const [urls, hashes] = elementIdsToUrlsAndHashArrays(document, ids)
+		console.log(`Checking for different hrefs, same hashes (${ids})`)
+		console.log("-----------------------------------------")
+
+		// No duplicate hrefs
+		t.deepEqual(
+			urls.length,
+			removeDuplicatesFromArray(urls).length
+		);
+		console.log("URLS:", urls)
+		console.log("URLS (duplicates removed):", removeDuplicatesFromArray(urls))
+		console.log("URLS length:", urls.length)
+		console.log("URLS length (duplicates removed):", removeDuplicatesFromArray(urls).length)
+
+		console.log();
+
+		// Duplicate hashes
+		t.notDeepEqual(
+			hashes.length,
+			removeDuplicatesFromArray(hashes).length
+		);
+
+		console.log("Hashes:", hashes)
+		console.log("Hashes (duplicates removed):", removeDuplicatesFromArray(hashes))
+		console.log("Hashes length:", hashes.length)
+		console.log("Hashes length (duplicates removed):", removeDuplicatesFromArray(hashes).length)
+
+		console.log();
 	}, 
-	title(providedTitle = "", document, id1, id2) {
-		return `${providedTitle} ${id1}.href =/= ${id2}.href, ${id1}.hash === ${id2}.hash`;
+	title(providedTitle = "", document, ids) {
+		return `${providedTitle} ${ids}: different {href,src}, same hashes`;
+	}
+});
+
+
+// "1css & 2css hrefs ==, hashes =="
+const sameUrlsSameHashes = test.macro({
+	exec(t, document, ids){
+		const [urls, hashes] = elementIdsToUrlsAndHashArrays(document, ids)
+		console.log(`Checking for different hrefs, same hashes (${ids})`)
+		console.log("-----------------------------------------")
+
+		// No duplicate hrefs
+		t.notDeepEqual(
+			urls.length,
+			removeDuplicatesFromArray(urls).length
+		);
+		console.log("URLS:", urls)
+		console.log("URLS (duplicates removed):", removeDuplicatesFromArray(urls))
+		console.log("URLS length:", urls.length)
+		console.log("URLS length (duplicates removed):", removeDuplicatesFromArray(urls).length)
+
+		console.log();
+
+		// Duplicate hashes
+		t.notDeepEqual(
+			hashes.length,
+			removeDuplicatesFromArray(hashes).length
+		);
+
+		console.log("Hashes:", hashes)
+		console.log("Hashes (duplicates removed):", removeDuplicatesFromArray(hashes))
+		console.log("Hashes length:", hashes.length)
+		console.log("Hashes length (duplicates removed):", removeDuplicatesFromArray(hashes).length)
+
+		console.log();
+	}, 
+	title(providedTitle = "", document, ids) {
+		return `${providedTitle} ${ids}: same {href,src}, same hashes`;
+	}
+});
+
+const correctHashLengths = test.macro({
+	exec(t, document, ids, desiredHashLength) {
+		const [urls, hashes] = elementIdsToUrlsAndHashArrays(document, ids);
+		console.log(`Checking correctHashLengths (${ids})`)
+		console.log("---------------------------")
+		hashes.forEach((fileHash) => {
+			t.deepEqual(fileHash.length, desiredHashLength);
+			console.log(`${fileHash} (${fileHash.length}) == ${desiredHashLength}`)
+		});
+		console.log();
+	},
+	title(providedTitle = "", document, ids, desiredHashLength) {
+		return `${providedTitle} ${ids} hash lengths are all set hash length (${desiredHashLength})`;
 	}
 });
 
 [16, 8].forEach((trunc) => {
 	const document = buildEleventy(trunc);
 	const prefix = `[hashTruncate: ${trunc.toString().padEnd(2, " ")}]`;
-	test(prefix, differentHrefsDifferentHashes, document, "1css", "3css")
-	test(prefix, differentHrefSameHashes, document, "1css", "2css")
+	test(prefix, differentUrlsDifferentHashes, document, ["1css", "3css", "js", "1img", "3img"]);
+	test(prefix, differentUrlsSameHashes, document, ["1css", "2css"]);
+	test(prefix, sameUrlsSameHashes, document, ["1img", "2img"]);
+	test(prefix, correctHashLengths, document, ["1css", "2css", "3css", "js"], trunc)
 });
