@@ -73,7 +73,7 @@ module.exports = function(eleventyConfig, options=defaultOptions) {
             logGreen(`[ACB] ${assetPath} hash = ${assetHash}`);
 
             assetPaths.push({
-                assetPath: assetPath.replace(dir.output, ""),
+                assetPath: assetPath.replace(dir.output + "/", ""),
                 assetHash: assetHash
             });
         });
@@ -81,22 +81,22 @@ module.exports = function(eleventyConfig, options=defaultOptions) {
         logYellow(`[ACB] Collected all asset hashes!`);
         logRegular(`[ACB] Replacing in output...`);
 
-        // For every file Eleventy outputs
+        // For every page Eleventy outputs
         results.forEach(({inputPath, outputPath, url, content}) => {
             let outputData = "";  // Assigned later
             let outputChanged = false;  // Check if any hashes have been added
 
             // Read the output content
-            fs.readFile(outputPath, encoding="UTF-8", (err, data) => { 
+            fs.readFile(outputPath, encoding="UTF-8", (err, pageData) => { 
                 if (err) {
                     logRed(err);
                     throw err;
                 }
                 // Save the output data
-                outputData = data;
+                outputData = pageData;
                 
                 assetPaths.forEach(({assetPath, assetHash}) => {
-                    if (data.includes(assetPath)) {
+                    if (pageData.includes(assetPath)) {
                         logGreen(`[ACB] ${outputPath} contains asset ${assetPath}`)
 
                         if (hashTruncate > 0) {
