@@ -43,60 +43,131 @@ const defaultOptions = {
     enableLogging: enableLogging,
     hashAlgorithm: algorithm,
     hashFunction: hash,
+    runAsync: true,
 }
 
 module.exports = function(eleventyConfig, options=defaultOptions) {
-    eleventyConfig.on("eleventy.after", async ({ dir, results, runMode, outputMode }) => {
+    // Override default options with set options
+    options = Object.assign(defaultOptions, options);
 
-        // Override default options with set options
-        options = Object.assign(defaultOptions, options);
+    if (options.runAsync) {
+        eleventyConfig.on("eleventy.after", async ({ dir, results, runMode, outputMode }) => {
+            const globstring = options.globstring;
+            const hashTruncate = options.hashTruncate;
+            const hashFunction = options.hashFunction;
+            // Set options to globals
+            enableLogging = options.enableLogging;
+            algorithm = options.hashAlgorithm;
 
-        const globstring = options.globstring;
-        const hashTruncate = options.hashTruncate;
-        const hashFunction = options.hashFunction;
-        // Set options to globals
-        enableLogging = options.enableLogging;
-        algorithm = options.hashAlgorithm;
+            if (hashTruncate > 0) {
+                logRegular(`[ACB] Truncating hash to ${hashTruncate}`);
+            } else {
+                logRegular(`[ACB] hashTruncate smaller than or equal to 0, disabling truncation`);
+            }
 
-        if (hashTruncate > 0) {
-            logRegular(`[ACB] Truncating hash to ${hashTruncate}`);
-        } else {
-            logRegular(`[ACB] hashTruncate smaller than or equal to 0, disabling truncation`);
-        }
+            const assetPaths = [];
+            logYellow(`[ACB] Collecting assets & calculating hashes using ${globstring}...`);
+            (await glob.glob(dir.output + "/" + globstring)).forEach((assetPath) => {
+                assetPath = assetPath.replace(/\\/g, "/")
+                logGreen(`[ACB] ${assetPath} is an asset! Calculating hash...`);
+                const assetHash = hashFunction(fs.readFileSync(assetPath));
+                logGreen(`[ACB] ${assetPath} hash = ${assetHash}`);
 
-        const assetPaths = [];
-        logYellow(`[ACB] Collecting assets & calculating hashes using ${globstring}...`);
-        (await glob.glob(dir.output + "/" + globstring)).forEach((assetPath) => {
-            assetPath = assetPath.replace(/\\/g, "/")
-            logGreen(`[ACB] ${assetPath} is an asset! Calculating hash...`);
-            const assetHash = hashFunction(fs.readFileSync(assetPath));
-            logGreen(`[ACB] ${assetPath} hash = ${assetHash}`);
+                assetPaths.push({
+                    assetPath: assetPath.replace(dir.output + "/", ""),
+                    assetHash: assetHash
+                });
+            });
 
-            assetPaths.push({
-                assetPath: assetPath.replace(dir.output + "/", ""),
-                assetHash: assetHash
+            logYellow(`[ACB] Collected all asset hashes!`);
+            logRegular(`[ACB] Replacing in output...`);
+
+            // For every page Eleventy outputs
+            results.forEach(({inputPath, outputPath, url, content}) => {
+                let outputData = "";  // Assigned later
+                let outputChanged = false;  // Check if any hashes have been added
+
+                // Read the output content
+                fs.readFile(outputPath, encoding="UTF-8", (err, pageData) => {
+                    if (err) {
+                        logRed(err);
+                        throw err;
+                    }
+                    // Save the output data
+                    outputData = pageData;
+
+                    assetPaths.forEach(({assetPath, assetHash}) => {
+                        if (outputData.includes(assetPath)) {
+                            logGreen(`[ACB] ${outputPath} contains asset ${assetPath}`)
+
+                            if (hashTruncate > 0) {
+                                assetHash = assetHash.substring(0, hashTruncate);
+                            }
+
+                            outputData = outputData.replaceAll(assetPath, `${assetPath}?v=${assetHash}`);
+                            outputChanged = true;
+
+                        } else {
+                            logRegular(`[ACB] ${outputPath} does NOT contain asset ${assetPath}. Skipping`)
+                        }
+                    });
+
+                    if (outputChanged) {
+                        fs.writeFile(outputPath, outputData, () => {
+                            logGreen(`[ACB] Added hashes to ${outputPath}`);
+                        });
+                    }
+                });
             });
         });
+    }
+    else {
+        eleventyConfig.on("eleventy.after", ({ dir, results, runMode, outputMode }) => {
+            const globstring = options.globstring;
+            const hashTruncate = options.hashTruncate;
+            const hashFunction = options.hashFunction;
+            // Set options to globals
+            enableLogging = options.enableLogging;
+            algorithm = options.hashAlgorithm;
 
-        logYellow(`[ACB] Collected all asset hashes!`);
-        logRegular(`[ACB] Replacing in output...`);
+            if (hashTruncate > 0) {
+                logRegular(`[ACB] Truncating hash to ${hashTruncate}`);
+            } else {
+                logRegular(`[ACB] hashTruncate smaller than or equal to 0, disabling truncation`);
+            }
 
-        // For every page Eleventy outputs
-        results.forEach(({inputPath, outputPath, url, content}) => {
-            let outputData = "";  // Assigned later
-            let outputChanged = false;  // Check if any hashes have been added
+            const assetPaths = [];
+            logYellow(`[ACB] Collecting assets & calculating hashes using ${globstring}...`);
+            glob.globSync(dir.output + "/" + globstring).forEach((assetPath) => {
+                assetPath = assetPath.replace(/\\/g, "/")
+                logGreen(`[ACB] ${assetPath} is an asset! Calculating hash...`);
+                const assetHash = hashFunction(fs.readFileSync(assetPath));
+                logGreen(`[ACB] ${assetPath} hash = ${assetHash}`);
 
-            // Read the output content
-            fs.readFile(outputPath, encoding="UTF-8", (err, pageData) => { 
-                if (err) {
+                assetPaths.push({
+                    assetPath: assetPath.replace(dir.output + "/", ""),
+                    assetHash: assetHash
+                });
+            });
+
+            logYellow(`[ACB] Collected all asset hashes!`);
+            logRegular(`[ACB] Replacing in output...`);
+
+            // For every page Eleventy outputs
+            results.forEach(({inputPath, outputPath, url, content}) => {
+                let outputData = "";  // Assigned later
+                let outputChanged = false;  // Check if any hashes have been added
+
+                // Read the output content
+                try {
+                    outputData = fs.readFileSync(outputPath, {encoding: "UTF-8"});
+                } catch (err) {
                     logRed(err);
-                    throw err;
+                    throw(err);
                 }
-                // Save the output data
-                outputData = pageData;
-                
+
                 assetPaths.forEach(({assetPath, assetHash}) => {
-                    if (pageData.includes(assetPath)) {
+                    if (outputData.includes(assetPath)) {
                         logGreen(`[ACB] ${outputPath} contains asset ${assetPath}`)
 
                         if (hashTruncate > 0) {
@@ -105,18 +176,17 @@ module.exports = function(eleventyConfig, options=defaultOptions) {
 
                         outputData = outputData.replaceAll(assetPath, `${assetPath}?v=${assetHash}`);
                         outputChanged = true;
-                        
+
                     } else {
-                        logRegular(`[ACB] ${outputPath} does NOT contain asset ${assetPath}. Skipping`)                        
+                        logRegular(`[ACB] ${outputPath} does NOT contain asset ${assetPath}. Skipping`)
                     }
                 });
 
                 if (outputChanged) {
-                    fs.writeFile(outputPath, outputData, () => {
-                        logGreen(`[ACB] Added hashes to ${outputPath}`);
-                    });
+                    fs.writeFileSync(outputPath, outputData);
+                    logGreen(`[ACB] Added hashes to ${outputPath}`);
                 }
             });
         });
-    });
+    }
 }
