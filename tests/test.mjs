@@ -14,11 +14,18 @@ const OUT_DIR = DIR_TEST + "out/"
 
 rmSync(OUT_DIR, { recursive: true, force: true })
 
-function buildEleventy(hashTruncate=16, runAsync=true) {
+function buildEleventy(hashTruncate=16, runAsync=true, useServe=false) {
 	// I tried using Eleventy programmatically. Emphasis on tried
 	// Thanks to https://github.com/actions/setup-node/issues/224#issuecomment-943531791
-	execSync("npx @11ty/eleventy", { env: { ...env, HASHTRUNCATE:hashTruncate, RUNASYNC: +runAsync /* convert to int */ }, cwd: DIR_TEST});
-	const outputHtml = readFileSync(`${OUT_DIR}${hashTruncate}-${runAsync ? "async" : "sync"}/test/index.html`, { encoding: "utf-8" });
+	try {
+		const command = useServe ? "timeout 2 npx @11ty/eleventy --serve" : "npx @11ty/eleventy"
+		execSync(command, { env: { ...env, HASHTRUNCATE:hashTruncate, RUNASYNC: +runAsync /* convert to int */, USESERVE: +useServe }, cwd: DIR_TEST});
+	} catch (e) {
+		if (!useServe) {
+			throw e;
+		}
+	}
+	const outputHtml = readFileSync(`${OUT_DIR}${hashTruncate}-${runAsync ? "async" : "sync"}-${useServe ? "build" : "serve"}/test/index.html`, { encoding: "utf-8" });
 	const dom = (new JSDOM(outputHtml));
 	return dom.window.document;
 }
@@ -198,11 +205,13 @@ const correctHashLengths = test.macro({
 
 [16, 8].forEach((trunc) => {
 	[true, false].forEach((runAsync) => {
-		const document = buildEleventy(trunc, runAsync);
-		const prefix = `[hashTruncate: ${trunc.toString().padEnd(2, " ")}, runAsync: ${runAsync}]`;
-		test(prefix, differentUrlsDifferentHashes, document, ["1css", "3css", "js", "1img", "3img"]);
-		test(prefix, differentUrlsSameHashes, document, ["1css", "2css"]);
-		test(prefix, sameUrlsSameHashes, document, ["1img", "2img"]);
-		test(prefix, correctHashLengths, document, ["1css", "2css", "3css", "js"], trunc)
-	})
+		[true, false].forEach((useServe) => {
+			const document = buildEleventy(trunc, runAsync, useServe);
+			const prefix = `[hashTruncate: ${trunc.toString().padEnd(2, " ")}, runAsync: ${runAsync}, useServe: ${useServe}]`;
+			test(prefix, differentUrlsDifferentHashes, document, ["1css", "3css", "js", "1img", "3img"]);
+			test(prefix, differentUrlsSameHashes, document, ["1css", "2css"]);
+			test(prefix, sameUrlsSameHashes, document, ["1img", "2img"]);
+			test(prefix, correctHashLengths, document, ["1css", "2css", "3css", "js"], trunc)
+		});
+	});
 });

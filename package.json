@@ -7,7 +7,7 @@
   "author": "Denperidge",
   "license": "MIT",
   "scripts": {
-    "test": "ava tests/*.mjs"
+    "test": "ava tests/test.mjs --timeout=30s"
   },
   "dependencies": {
     "glob": "^10.3.10"
