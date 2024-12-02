@@ -1,4 +1,5 @@
 const fs = require("fs");
+const path = require("path");
 const crypto = require("crypto");
 const glob = require("glob");
 
@@ -40,7 +41,8 @@ function logRed(string) {
 }
 
 const defaultOptions = {
-    globstring: "**/*.{css,js,png,jpg,jpeg,gif,mp4,ico}",
+    globstring: "**/*",
+    extensions: ["css", "js", "png", "jpg", "jpeg", "gif", "mp4", "ico"],
     hashTruncate: 12,
     runAsync: true,
     enableLogging: enableLogging,
@@ -48,10 +50,14 @@ const defaultOptions = {
     hashFunction: hash,
 }
 
-function collectLocalAssets(globResults=[], outputDir) {
+function collectLocalAssets(globResults=[], outputDir, extensions=defaultOptions.extensions) {
     const assetPaths = [];
     globResults.forEach((assetPath) => {
         assetPath = assetPath.replace(/\\/g, "/")
+        if (!extensions.includes(path.extname(assetPath).substring(1))) {
+            return;
+        }
+
         logGreen(`[ACB] ${assetPath} is an asset! Calculating hash...`);
         const assetHash = hashFunction(fs.readFileSync(assetPath));
         logGreen(`[ACB] ${assetPath} hash = ${assetHash}`);
@@ -114,6 +120,7 @@ module.exports = function(eleventyConfig, options=defaultOptions) {
     // Override default options with set options
     options = Object.assign(defaultOptions, options);
     const globstring = options.globstring;
+    const extensions = options.extensions;
     const runAsync = options.runAsync;
     // Set options to globals
     enableLogging = options.enableLogging;
@@ -132,7 +139,7 @@ module.exports = function(eleventyConfig, options=defaultOptions) {
     if (runAsync) {
         eleventyConfig.on("eleventy.after", async ({ dir, results, runMode, outputMode }) => {
             logYellow(`[ACB] Collecting assets & calculating hashes using ${globstring}...`);
-            const assetPathsAndHashes = collectLocalAssets(await glob.glob(dir.output + "/" + globstring), dir.output);
+            const assetPathsAndHashes = collectLocalAssets(await glob.glob(dir.output + "/" + globstring, {nodir: true}), dir.output, extensions);
 
             logRegular(`[ACB] Replacing in output...`);
             results.forEach(({inputPath, outputPath, url, content}) => {
@@ -149,7 +156,7 @@ module.exports = function(eleventyConfig, options=defaultOptions) {
     } else {
         eleventyConfig.on("eleventy.after", ({ dir, results, runMode, outputMode }) => {
             logYellow(`[ACB] Collecting assets & calculating hashes using ${globstring}...`);
-            const assetPathsAndHashes = collectLocalAssets(glob.globSync(dir.output + "/" + globstring), dir.output);
+            const assetPathsAndHashes = collectLocalAssets(glob.globSync(dir.output + "/" + globstring, {nodir: true}), dir.output, extensions);
 
             logRegular(`[ACB] Replacing in output...`);
             results.forEach(({inputPath, outputPath, url, content}) => {

@@ -44,7 +44,8 @@ module.exports = function (eleventyConfig) {
         enableLogging: true,  // Whether to enable eleventy-auto-cache-buster logging.
         hashTruncate: 0,  // Desired substring length of the hash. Set to 0 or lower to disable truncating
         runAsync: false,  // Whether to run asynchronously. Default is true
-        globstring: "**/*.ico",  // What glob string is used to locate assets.
+        globstring: "subdir/**/*",  // What glob string is used to locate assets.
+        extensions: ["css"],  // What file extensions are accepted when locating assets.
         hashAlgorithm: "sha1",  // What hash method to pass to the hash function. See Node.js' crypto.createHash documentation.
         hashFunction: function (content) { return "example" }  // What function to run to calculate hashes. Overrides hashAlgorithm.
     });
