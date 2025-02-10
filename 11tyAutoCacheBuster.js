@@ -1,11 +1,11 @@
-const fs = require("fs");
-const path = require("path");
+const fs     = require("fs");
+const path   = require("path");
 const crypto = require("crypto");
-const glob = require("glob");
+const glob   = require("glob");
 
 let enableLogging = false;
-let algorithm = "md5";
-let hashTruncate = 12;
+let algorithm     = "md5";
+let hashTruncate  = 12;
 let hashFunction;
 
 function hash(content) {
@@ -41,13 +41,18 @@ function logRed(string) {
 }
 
 const defaultOptions = {
-    globstring: "**/*",
-    extensions: ["css", "js", "png", "jpg", "jpeg", "gif", "mp4", "ico"],
-    hashTruncate: 12,
-    runAsync: true,
+    globstring:    "**/*",
+    globOptions:   {nodir: true},
+    extensions:    ["css", "js", "png", "jpg", "jpeg", "gif", "mp4", "ico"],
+    hashTruncate:  12,
+    runAsync:      true,
     enableLogging: enableLogging,
     hashAlgorithm: algorithm,
-    hashFunction: hash,
+    hashFunction:  hash,
+}
+
+const defaultGlobOptions = {
+    nodir: true
 }
 
 function collectLocalAssets(globResults=[], outputDir, extensions=defaultOptions.extensions) {
@@ -88,7 +93,7 @@ function writeAsync(outputPath, outputData) {
 }
 
 function replaceAssetsInFile(fileData, filePath, assetPathsAndHashes, writeFunc) {
-    let outputString = fileData;
+    let outputString  = fileData;
     let outputChanged = false;  // Check if any hashes have been added
 
     // Check for every asset
@@ -113,20 +118,22 @@ function replaceAssetsInFile(fileData, filePath, assetPathsAndHashes, writeFunc)
     if (outputChanged) {
         writeFunc(filePath, outputString);
     }
-
 }
 
 module.exports = function(eleventyConfig, options=defaultOptions) {
     // Override default options with set options
-    options = Object.assign(defaultOptions, options);
-    const globstring = options.globstring;
-    const extensions = options.extensions;
-    const runAsync = options.runAsync;
+    options = Object.assign(defaultOptions, options, {
+        globOptions: Object.assign(defaultOptions.globOptions, options.globOptions) // -- ensure `nodir` is always set
+    });
+    const globstring  = options.globstring;
+    const globOptions = options.globOptions;
+    const extensions  = options.extensions;
+    const runAsync    = options.runAsync;
     // Set options to globals
-    enableLogging = options.enableLogging;
-    hashTruncate = options.hashTruncate;
-    hashFunction = options.hashFunction;
-    algorithm = options.hashAlgorithm;
+    enableLogging     = options.enableLogging;
+    hashTruncate      = options.hashTruncate;
+    hashFunction      = options.hashFunction;
+    algorithm         = options.hashAlgorithm;
     
 
     // Setup
@@ -139,7 +146,7 @@ module.exports = function(eleventyConfig, options=defaultOptions) {
     if (runAsync) {
         eleventyConfig.on("eleventy.after", async ({ dir, results, runMode, outputMode }) => {
             logYellow(`[ACB] Collecting assets & calculating hashes using ${globstring}...`);
-            const assetPathsAndHashes = collectLocalAssets(await glob.glob(dir.output + "/" + globstring, {nodir: true}), dir.output, extensions);
+            const assetPathsAndHashes = collectLocalAssets(await glob.glob(dir.output + "/" + globstring, globOptions), dir.output, extensions);
 
             logRegular(`[ACB] Replacing in output...`);
             results.forEach(({inputPath, outputPath, url, content}) => {
@@ -156,7 +163,7 @@ module.exports = function(eleventyConfig, options=defaultOptions) {
     } else {
         eleventyConfig.on("eleventy.after", ({ dir, results, runMode, outputMode }) => {
             logYellow(`[ACB] Collecting assets & calculating hashes using ${globstring}...`);
-            const assetPathsAndHashes = collectLocalAssets(glob.globSync(dir.output + "/" + globstring, {nodir: true}), dir.output, extensions);
+            const assetPathsAndHashes = collectLocalAssets(glob.globSync(dir.output + "/" + globstring, globOptions), dir.output, extensions);
 
             logRegular(`[ACB] Replacing in output...`);
             results.forEach(({inputPath, outputPath, url, content}) => {
@@ -166,5 +173,4 @@ module.exports = function(eleventyConfig, options=defaultOptions) {
             });
         });
     }
-
 }
