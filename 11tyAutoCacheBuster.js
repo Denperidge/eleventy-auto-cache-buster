@@ -51,10 +51,6 @@ const defaultOptions = {
     hashFunction:  hash,
 }
 
-const defaultGlobOptions = {
-    nodir: true
-}
-
 function collectLocalAssets(globResults=[], outputDir, extensions=defaultOptions.extensions) {
     const assetPaths = [];
     globResults.forEach((assetPath) => {
@@ -123,12 +119,10 @@ function replaceAssetsInFile(fileData, filePath, assetPathsAndHashes, writeFunc)
 module.exports = function(eleventyConfig, options=defaultOptions) {
     // Override default options with set options
     options = Object.assign(defaultOptions, options, {
+        // Object.assign seems to overwrite nested objects. @emiliorcueto added the clever handling below
         globOptions: Object.assign(defaultOptions.globOptions, options.globOptions) // -- ensure `nodir` is always set
     });
-    const globstring  = options.globstring;
-    const globOptions = options.globOptions;
-    const extensions  = options.extensions;
-    const runAsync    = options.runAsync;
+    const { globstring, globOptions, extensions, runAsync }  = options;
     // Set options to globals
     enableLogging     = options.enableLogging;
     hashTruncate      = options.hashTruncate;
