@@ -144,7 +144,7 @@ module.exports = function(eleventyConfig, options=defaultOptions) {
 
             logRegular(`[ACB] Replacing in output...`);
             results.forEach(({inputPath, outputPath, url, content}) => {
-                if (!globOptions.ignore.includes(outputPath)) { // -- Do not attempt to read explicitly ignored files as they may no longer exist!
+                if (!globOptions.ignore?.includes(outputPath)) { // -- Do not attempt to read explicitly ignored files as they may no longer exist!
                     fs.readFile(outputPath, encoding="UTF-8", (err, pageData) => { 
                         if (err) {
                             logRed(err);
@@ -163,7 +163,7 @@ module.exports = function(eleventyConfig, options=defaultOptions) {
 
             logRegular(`[ACB] Replacing in output...`);
             results.forEach(({inputPath, outputPath, url, content}) => {
-                if (!globOptions.ignore.includes(outputPath)) { // -- Do not attempt to read explicitly ignored files as they may no longer exist!
+                if (!globOptions.ignore?.includes(outputPath)) { // -- Do not attempt to read explicitly ignored files as they may no longer exist!
                     const pageData = fs.readFileSync(outputPath, encoding="UTF-8"); 
                     // Save the output data
                     replaceAssetsInFile(pageData, outputPath, assetPathsAndHashes, writeSync);
