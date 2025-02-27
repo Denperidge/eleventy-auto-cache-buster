@@ -144,14 +144,16 @@ module.exports = function(eleventyConfig, options=defaultOptions) {
 
             logRegular(`[ACB] Replacing in output...`);
             results.forEach(({inputPath, outputPath, url, content}) => {
-                fs.readFile(outputPath, encoding="UTF-8", (err, pageData) => { 
-                    if (err) {
-                        logRed(err);
-                        throw err;
-                    }
-                    // Save the output data
-                    replaceAssetsInFile(pageData, outputPath, assetPathsAndHashes, writeAsync);
-                });
+                if (!globOptions.ignore.includes(outputPath)) { // -- Do not attempt to read explicitly ignored files as they may no longer exist!
+                    fs.readFile(outputPath, encoding="UTF-8", (err, pageData) => { 
+                        if (err) {
+                            logRed(err);
+                            throw err;
+                        }
+                        // Save the output data
+                        replaceAssetsInFile(pageData, outputPath, assetPathsAndHashes, writeAsync);
+                    });
+                }
             });
         });
     } else {
@@ -161,9 +163,11 @@ module.exports = function(eleventyConfig, options=defaultOptions) {
 
             logRegular(`[ACB] Replacing in output...`);
             results.forEach(({inputPath, outputPath, url, content}) => {
-                const pageData = fs.readFileSync(outputPath, encoding="UTF-8"); 
-                // Save the output data
-                replaceAssetsInFile(pageData, outputPath, assetPathsAndHashes, writeSync);
+                if (!globOptions.ignore.includes(outputPath)) { // -- Do not attempt to read explicitly ignored files as they may no longer exist!
+                    const pageData = fs.readFileSync(outputPath, encoding="UTF-8"); 
+                    // Save the output data
+                    replaceAssetsInFile(pageData, outputPath, assetPathsAndHashes, writeSync);
+                }
             });
         });
     }
