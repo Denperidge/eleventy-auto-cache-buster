@@ -37,11 +37,11 @@ function _getAttribute(document, id, attribute) {
 }
 
 function hash(string) {
-	const paramIndex = string.indexOf("?v=");
+	const paramIndex = string.lastIndexOf("v=");
 	if (paramIndex < 0) {
 		throw new Error("Hash could not be found in " + string);
 	}
-	return string.substring(paramIndex + 3)
+	return string.substring(paramIndex + 2)
 }
 
 function getUrl(document, id) {
