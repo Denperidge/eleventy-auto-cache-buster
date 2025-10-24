@@ -7,6 +7,7 @@
   "author": "Denperidge",
   "license": "MIT",
   "scripts": {
+    "start": "pushd tests && RUNASYNC=0 USESERVE=1 HASHTRUNCATE=16 eleventy && popd",
     "test": "ava tests/test.mjs --timeout=30s"
   },
   "dependencies": {
