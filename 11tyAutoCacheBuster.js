@@ -94,19 +94,34 @@ function replaceAssetsInFile(fileData, filePath, assetPathsAndHashes, writeFunc)
 
     // Check for every asset
     assetPathsAndHashes.forEach(({assetPath, assetHash}) => {
-        if (fileData.includes(assetPath)) {
-            logGreen(`[ACB] ${filePath} contains asset ${assetPath}`)
+        let found = false;
+        let indexPush = 0;  // With values being replaced, the index values will need to be adjusted
+        const regex = new RegExp(assetPath.replaceAll("/", "\\/").replaceAll("?", "\\?"), "g")
+        const matches = outputString.matchAll(regex);
+
+        while ((match = matches.next()).done != true) {
+            found = true;
+            const value = match.value
+            const path = value[0]
+            logGreen(`[ACB] ${filePath} contains asset ${assetPath} (matched on: ${path})`)
 
             // Optionally truncate
             if (hashTruncate > 0) {
                 assetHash = assetHash.substring(0, hashTruncate);
             }
 
+            const newPath = `${path}?v=${assetHash}`;
             // Replace asset path with asset path with hash
-            outputString = outputString.replaceAll(assetPath, `${assetPath}?v=${assetHash}`);
+            outputString = outputString.substring(0, value.index + indexPush)
+                + newPath
+                + outputString.substring(value.index + indexPush + path.length)
+
+            indexPush += newPath.length - path.length;
+
             // Write changes to file
             outputChanged = true;
-        } else {
+        }
+        if (!found) {
             logRegular(`[ACB] ${filePath} does NOT contain asset ${assetPath}. Skipping`)                        
         }
     });
