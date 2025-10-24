@@ -96,7 +96,7 @@ function replaceAssetsInFile(fileData, filePath, assetPathsAndHashes, writeFunc)
     assetPathsAndHashes.forEach(({assetPath, assetHash}) => {
         let found = false;
         let indexPush = 0;  // With values being replaced, the index values will need to be adjusted
-        const regex = new RegExp(assetPath.replaceAll("/", "\\/").replaceAll("?", "\\?"), "g")
+        const regex = new RegExp(assetPath.replaceAll("/", "\\/").replaceAll("?", "\\?") + '.*?(?=")', "g")
         const matches = outputString.matchAll(regex);
 
         while ((match = matches.next()).done != true) {
@@ -110,7 +110,8 @@ function replaceAssetsInFile(fileData, filePath, assetPathsAndHashes, writeFunc)
                 assetHash = assetHash.substring(0, hashTruncate);
             }
 
-            const newPath = `${path}?v=${assetHash}`;
+            const seperator = path.includes("?") ? "&" : "?";
+            const newPath = `${path}${seperator}v=${assetHash}`;
             // Replace asset path with asset path with hash
             outputString = outputString.substring(0, value.index + indexPush)
                 + newPath

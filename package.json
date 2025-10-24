@@ -1,6 +1,6 @@
 {
   "name": "eleventy-auto-cache-buster",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "description": "Busts cache using ?v= with minimal configuration!",
   "main": "11tyAutoCacheBuster.js",
   "repository": "https://github.com/Denperidge/eleventy-auto-cache-buster.git",
