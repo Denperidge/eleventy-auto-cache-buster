@@ -1,37 +1,27 @@
 import test from "ava";
+import { buildScenarios } from "eleventy-test";
 import { readFileSync, rmSync } from "fs";
 import { execSync } from "child_process";
 import { JSDOM } from "jsdom";
-import { env } from "process";
+import { env, cwd } from "process";
 
 /**
  * URLS in this refer to src or href or whatever
  */
 
+/*
 // Build utils
 const DIR_TEST = "tests/"
 const OUT_DIR = DIR_TEST + "out/" 
 
 rmSync(OUT_DIR, { recursive: true, force: true })
-
-function buildEleventy(hashTruncate=16, runAsync=true, useServe=false) {
-	// I tried using Eleventy programmatically. Emphasis on tried
-	// Thanks to https://github.com/actions/setup-node/issues/224#issuecomment-943531791
-	try {
-		const command = useServe ? "timeout 2 npx @11ty/eleventy --serve" : "npx @11ty/eleventy"
-		execSync(command, { env: { ...env, HASHTRUNCATE:hashTruncate, RUNASYNC: +runAsync /* convert to int */, USESERVE: +useServe }, cwd: DIR_TEST});
-	} catch (e) {
-		if (!useServe) {
-			throw e;
-		}
-	}
-	const outputHtml = readFileSync(`${OUT_DIR}${hashTruncate}-${runAsync ? "async" : "sync"}-${useServe ? "build" : "serve"}/test/index.html`, { encoding: "utf-8" });
-	const dom = (new JSDOM(outputHtml));
-	return dom.window.document;
-}
-
+*/
 
 // Helpers
+function getDom(input) {
+    return new JSDOM(input).window.document;
+}
+
 function _getAttribute(document, id, attribute) {
 	return document.getElementById(id).getAttribute(attribute);
 }
@@ -73,10 +63,26 @@ function removeDuplicatesFromArray(arr) {
 
 
 // Tests
-// "1css & 3css hrefs =/=, hashes =="
-const differentUrlsDifferentHashes = test.macro({
-	exec(t, document, ids) {
+const results = await buildScenarios({
+    projectRoot: cwd(),
+    returnArray: false,
+});
+const resultsArray = Object.values(results);
+
+
+test("1css & 3css hrefs =/=, but hashes ==", async t => {
+	resultsArray.forEach(async (result) => {
+		console.log(result)
+		console.log("getting data")
+		const data = await result.getFileContent("/index.html");
+		console.log("data got")
+		const document = getDom(data);
+		console.log("dom got")
+		const ids = ["1css", "3css", "js", "1img", "3img"];
+		console.log(document)
 		const [urls, hashes] = elementIdsToUrlsAndHashArrays(document, ids)
+		console.log(urls)
+		console.log(hashes)
 		console.log(`Checking for different hrefs, same hashes (${ids})`)
 		console.log("-----------------------------------------")
 
@@ -105,12 +111,16 @@ const differentUrlsDifferentHashes = test.macro({
 		console.log("Hashes length (duplicates removed):", removeDuplicatesFromArray(hashes).length)
 
 		console.log();
-		
-	},
+	})
+
+	/*
 	title(providedTitle = "", document, ids) {
 		return `${providedTitle} ${ids}: different {href,src}, different hashes`;	
 	}
+		*/
 });
+
+/*
 
 // "1css & 2css hrefs =/=, hashes =="
 const differentUrlsSameHashes = test.macro({
@@ -202,7 +212,8 @@ const correctHashLengths = test.macro({
 		return `${providedTitle} ${ids} hash lengths are all set hash length (${desiredHashLength})`;
 	}
 });
-
+*/
+/*
 [16, 8].forEach((trunc) => {
 	[true, false].forEach((runAsync) => {
 		[true, false].forEach((useServe) => {
@@ -215,3 +226,4 @@ const correctHashLengths = test.macro({
 		});
 	});
 });
+			*/

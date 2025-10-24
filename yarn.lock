@@ -808,6 +808,11 @@ ee-first@1.1.1:
   resolved "https://registry.yarnpkg.com/ee-first/-/ee-first-1.1.1.tgz#590c61156b0ae2f4f0255732a158b266bc56b21d"
   integrity sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==
 
+eleventy-test@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/eleventy-test/-/eleventy-test-1.2.0.tgz#06f53fa5488ee838a295478914bb2a46b2a4911b"
+  integrity sha512-v49zP72IP/Rmb7u7bvn0pPUYvTmjfRtuPNc97dIJDbl6dSRa1KVhsQzxrE5BFXUjZM6/ONOucvEEgt5aWM6QXA==
+
 emittery@^1.0.3:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/emittery/-/emittery-1.0.3.tgz#c9d2a9c689870f15251bb13b31c67715c26d69ac"
