@@ -18,7 +18,7 @@ function buildEleventy(hashTruncate=16, runAsync=true, useServe=false) {
 	// I tried using Eleventy programmatically. Emphasis on tried
 	// Thanks to https://github.com/actions/setup-node/issues/224#issuecomment-943531791
 	try {
-		const command = useServe ? "timeout 2 npx @11ty/eleventy --serve" : "npx @11ty/eleventy"
+		const command = useServe ? "timeout 4 npx @11ty/eleventy --serve" : "npx @11ty/eleventy"
 		execSync(command, { env: { ...env, HASHTRUNCATE:hashTruncate, RUNASYNC: +runAsync /* convert to int */, USESERVE: +useServe }, cwd: DIR_TEST});
 	} catch (e) {
 		if (!useServe) {
