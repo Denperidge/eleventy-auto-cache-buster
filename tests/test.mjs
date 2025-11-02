@@ -21,6 +21,7 @@ function buildEleventy(hashTruncate=16, runAsync=true, useServe=false) {
 		const command = useServe ? "timeout 4 npx @11ty/eleventy --serve" : "npx @11ty/eleventy"
 		execSync(command, { env: { ...env, HASHTRUNCATE:hashTruncate, RUNASYNC: +runAsync /* convert to int */, USESERVE: +useServe }, cwd: DIR_TEST});
 	} catch (e) {
+		console.error(e);
 		if (!useServe) {
 			throw e;
 		}

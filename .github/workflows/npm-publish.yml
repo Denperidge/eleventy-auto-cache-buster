@@ -15,15 +15,15 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v6
         with:
           node-version: 20
 
       - run: yarn install --immutable
 
-      - uses: ncipollo/release-action@v1.12.0
+      - uses: ncipollo/release-action@v1.20.0
         with:
           artifacts: 11tyAutoCacheBuster.js
 
@@ -31,9 +31,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: [test]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v6
         with:
           node-version: 20
           registry-url: https://registry.npmjs.org/
