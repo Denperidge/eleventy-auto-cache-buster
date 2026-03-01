@@ -1,6 +1,6 @@
 {
   "name": "eleventy-auto-cache-buster",
-  "version": "0.8.3",
+  "version": "0.8.4",
   "description": "Busts cache using ?v= with minimal configuration!",
   "main": "11tyAutoCacheBuster.js",
   "repository": "https://github.com/Denperidge/eleventy-auto-cache-buster.git",
@@ -11,11 +11,11 @@
     "test": "ava tests/test.mjs --timeout=30s"
   },
   "dependencies": {
-    "glob": "^12.0.0"
+    "glob": "^13.0.6"
   },
   "devDependencies": {
-    "@11ty/eleventy": "^3.0.0",
-    "ava": "^6.1.3",
-    "jsdom": "^24.1.0"
+    "@11ty/eleventy": "^3.1.2",
+    "ava": "^7.0.0",
+    "jsdom": "^28.1.0"
   }
 }

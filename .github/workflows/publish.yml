@@ -1,9 +1,9 @@
-name: Publish npm package
+name: Publish package
 
 on:
   push:
     tags:
-      - "*"
+      - "*.*.*"
 
 jobs:
   test:
@@ -15,33 +15,25 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v5
-
-      - uses: actions/setup-node@v6
-        with:
-          node-version: 20
-
-      - run: yarn install --immutable
-
+      - uses: actions/checkout@v6
       - uses: ncipollo/release-action@v1.20.0
         with:
           artifacts: 11tyAutoCacheBuster.js
 
   npm-publish:
     runs-on: ubuntu-latest
+    # See https://docs.npmjs.com/trusted-publishers#github-actions-configuration
+    permissions:
+      id-token: write
+      contents: read
     needs: [test]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - uses: actions/setup-node@v6
         with:
-          node-version: 20
-          registry-url: https://registry.npmjs.org/
+          node-version: 24
+          registry-url: "https://registry.npmjs.org"
 
       - run: yarn install --immutable
-
-      - run: yarn publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-  
+      - run: npm publish
