@@ -54,7 +54,7 @@ const defaultOptions = {
 function collectLocalAssets(globResults=[], outputDir, extensions=defaultOptions.extensions) {
     const assetPaths = [];
     globResults.forEach((assetPath) => {
-        assetPath = assetPath.replace(/\\/g, "/")
+        assetPath = assetPath.replace(/\\/g, "/").replace(outputDir, "")
         if (!extensions.includes(path.extname(assetPath).substring(1))) {
             return;
         }
@@ -154,9 +154,9 @@ module.exports = function(eleventyConfig, options=defaultOptions) {
     }
 
     if (runAsync) {
-        eleventyConfig.on("eleventy.after", async ({ dir, results, runMode, outputMode }) => {
-            logYellow(`[ACB] Collecting assets & calculating hashes using ${globstring}...`);
-            const assetPathsAndHashes = collectLocalAssets(await glob.glob(dir.output + "/" + globstring, globOptions), dir.output, extensions);
+        eleventyConfig.on("eleventy.after", async ({ directories, results, runMode, outputMode }) => {
+            logYellow(`[ACB] Collecting assets & calculating hashes using ${globstring} in ${directories.output}...`);
+            const assetPathsAndHashes = collectLocalAssets(await glob.glob(directories.output + "/" + globstring, globOptions), directories.output, extensions);
 
             logRegular(`[ACB] Replacing in output...`);
             results.forEach(({inputPath, outputPath, url, content}) => {
@@ -173,9 +173,9 @@ module.exports = function(eleventyConfig, options=defaultOptions) {
             });
         });
     } else {
-        eleventyConfig.on("eleventy.after", ({ dir, results, runMode, outputMode }) => {
+        eleventyConfig.on("eleventy.after", ({ directories, results, runMode, outputMode }) => {
             logYellow(`[ACB] Collecting assets & calculating hashes using ${globstring}...`);
-            const assetPathsAndHashes = collectLocalAssets(glob.globSync(dir.output + "/" + globstring, globOptions), dir.output, extensions);
+            const assetPathsAndHashes = collectLocalAssets(glob.globSync(directories.output + "/" + globstring, globOptions), directories.output, extensions);
 
             logRegular(`[ACB] Replacing in output...`);
             results.forEach(({inputPath, outputPath, url, content}) => {
