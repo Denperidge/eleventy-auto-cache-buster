@@ -53,14 +53,16 @@ const defaultOptions = {
 
 function collectLocalAssets(globResults=[], outputDir, extensions=defaultOptions.extensions) {
     const assetPaths = [];
-    globResults.forEach((assetPath) => {
-        assetPath = assetPath.replace(/\\/g, "/").replace(outputDir, "")
+    globResults.forEach((assetFullPath) => {
+        assetFullPath = assetFullPath.replace(/\\/g, "/");
+        const assetPath = assetFullPath.replace(outputDir, "") 
+        
         if (!extensions.includes(path.extname(assetPath).substring(1))) {
             return;
         }
 
         logGreen(`[ACB] ${assetPath} is an asset! Calculating hash...`);
-        const assetHash = hashFunction(fs.readFileSync(assetPath));
+        const assetHash = hashFunction(fs.readFileSync(assetFullPath));
         logGreen(`[ACB] ${assetPath} hash = ${assetHash}`);
 
         assetPaths.push({
