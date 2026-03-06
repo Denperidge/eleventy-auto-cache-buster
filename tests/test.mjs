@@ -72,7 +72,6 @@ async function parseHtml(t, scenarioTitle, filename="/test/index.html") {
 	}
 }
 
-/*
 // Tests
 // "1css & 3css hrefs =/=, hashes =="
 test("different {href,src}, different hashes", async t => {
@@ -208,7 +207,6 @@ test("hash lengths are all set hash length", async t => {
 		console.log();
 	}
 });
-*/
 
 /**
  * Tests for compatibility with minifiers.
