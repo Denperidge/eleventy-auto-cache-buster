@@ -16,7 +16,11 @@
   },
   "devDependencies": {
     "@11ty/eleventy": "^3.1.2",
+    "@codestitchofficial/eleventy-plugin-minify": "^1.1.3",
     "ava": "^7.0.0",
-    "jsdom": "^28.1.0"
+    "eleventy-test": "^2.0.0",
+    "html-minifier-terser": "^7.2.0",
+    "jsdom": "^28.1.0",
+    "rss-parser": "^3.13.0"
   }
 }

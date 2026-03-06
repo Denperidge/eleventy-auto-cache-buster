@@ -1,0 +1,37 @@
+---json
+{
+  "permalink": "rss.xml",
+  "eleventyExcludeFromCollections": true,
+  "metadata": {
+    "title": "My Web Site",
+    "description": "A description",
+    "language": "en-US",
+    "base": "https://my.web.site",
+    "author": {
+      "name": "Joe Blow"
+    },
+    "siteImage": "/assets/images/site/logo.png"
+  }
+}
+---
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xml:base="{{ metadata.base }}/">
+  <channel>
+    <title>{{ metadata.title }}</title>
+    <link>{{ metadata.base }}/</link>
+    <image>
+      <url>{{ metadata.base }}{{ metadata.siteImage }}</url>
+      <title>{{ metadata.title }}</title>
+      <link>{{ metadata.base }}/</link>
+      <description><![CDATA[{{ metadata.description }}]]></description>
+      <width>144</width>
+      <height>144</height>
+    </image>
+    {%- for post in collections.blog | sortByPubDate | reverse %}
+    {%- set absolutePostUrl = post.url %}
+    <item>
+      <enclosure url="{{ metadata.base }}{{ post.data.image }}" />
+    </item>
+    {%- endfor %}
+  </channel>
+</rss>
