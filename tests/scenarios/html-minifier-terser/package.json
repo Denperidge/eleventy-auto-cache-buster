@@ -1,0 +1,21 @@
+{
+  "name": "cache-test-html-minifier-terser",
+  "version": "1.0.2",
+  "description": "Debug conflict between @codestitchofficial/eleventy-plugin-minify & eleventy-auto-cache-buster",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "npx @11ty/eleventy --serve --incremental",
+    "build": "npx @11ty/eleventy"
+  },
+  "keywords": [],
+  "author": "Chris J. Zähller",
+  "license": "Kelp Commons License",
+  "dependencies": {
+    "@11ty/eleventy": "^3.1.2"
+  },
+  "devDependencies": {
+    "eleventy-auto-cache-buster": "^0.8.3",
+    "html-minifier-terser": "^7.2.0"
+  }
+}
