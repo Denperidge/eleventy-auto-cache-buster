@@ -1,6 +1,8 @@
 import test from "ava";
 import { buildScenarios } from "eleventy-test";
 import { JSDOM } from "jsdom";
+import Parser from "rss-parser";
+const parser = new Parser();
 
 /**
  * URLS in this refer to src or href or whatever
@@ -70,6 +72,7 @@ async function parseHtml(t, scenarioTitle, filename="/test/index.html") {
 	}
 }
 
+/*
 // Tests
 // "1css & 3css hrefs =/=, hashes =="
 test("different {href,src}, different hashes", async t => {
@@ -205,3 +208,56 @@ test("hash lengths are all set hash length", async t => {
 		console.log();
 	}
 });
+*/
+
+/**
+ * Tests for compatibility with minifiers.
+ * 
+ * Thanks to github.com/seezee and github.com/6TELOIV
+ * for all their work in finding and fixing the issues! <3
+ * 
+ * See:
+ * - https://github.com/Denperidge/eleventy-auto-cache-buster/issues/18
+ * - https://github.com/Denperidge/eleventy-auto-cache-buster/pull/25
+ */
+
+const dogHash = "5e3f593b903b7172a3c962c6b0561742";
+const cityHash = "8b04b1249bf9fb3d2e62c91d641511b7";
+const logoHash = "cb41ee4bb73806e70aab98036c517b89";
+
+const minifierCacheBust = test.macro({
+	async exec(t, scenarioTitle) {
+        const scenarioOutput = results[scenarioTitle]
+	    t.log(scenarioTitle)
+
+
+        for (const [htmlDir, imageFilename, hash] of [
+            ["/", "placeholder-dog-1.jpg", dogHash],
+            ["/blog/blog-1/", "placeholder-dog-1.jpg", dogHash],
+            ["/blog/blog-2/", "placeholder-dog-2.jpg", dogHash],
+            ["/blog/blog-3/", "placeholder-dog-3.jpg", dogHash]
+        ]) {
+            const html = await scenarioOutput.getFileContent(htmlDir + "index.html")
+            const document = (new JSDOM(html)).window.document;
+	        const images = document.querySelectorAll("img");
+
+            t.is(images[0].getAttribute("src"), "/assets/images/blog/" + imageFilename + "?v=" + hash);
+        }
+
+        const rss = await scenarioOutput.getFileContent("/rss.xml")
+        try {
+            const parsedRss = await parser.parseString(rss);
+            // Check if RSS is parseable & correct
+            t.is(parsedRss.title, "My Web Site")
+            t.is(parsedRss.image.url, "https://my.web.site/assets/images/site/logo.png?v=" + logoHash)
+        } catch {
+            t.fail("rss could not be parsed")
+        }
+	}, 
+	title(providedTitle = "") {
+		return `${providedTitle} is cache busted and has valid rss`;
+	}
+});
+test("eleventy-plugin-minify", minifierCacheBust, "eleventy-plugin-minify@3")
+test("html-minifier-terser", minifierCacheBust, "html-minifier-terser@3")
+

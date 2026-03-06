@@ -19,6 +19,7 @@
     "ava": "^7.0.0",
     "eleventy-test": "^2.0.0",
     "html-minifier-terser": "^7.2.0",
-    "jsdom": "^28.1.0"
+    "jsdom": "^28.1.0",
+    "rss-parser": "^3.13.0"
   }
 }

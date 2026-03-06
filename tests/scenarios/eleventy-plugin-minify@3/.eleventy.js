@@ -12,7 +12,9 @@ module.exports = async function(eleventyConfig) {
   eleventyConfig.setLayoutResolution(false);
 
   // Copy assets to build directory
-  eleventyConfig.addPassthroughCopy(`src/assets/images`);
+  eleventyConfig.addPassthroughCopy({
+    'input/assets/images': "assets/images"
+  });
 
   // Sort blog entries
   function sortByPubDate(values) {
@@ -24,7 +26,9 @@ module.exports = async function(eleventyConfig) {
 
   // Cache busting
   eleventyConfig.addPlugin(eleventyAutoCacheBuster, {
-    extensions: [`css`, `js`, `png`, `jpg`, `jpeg`, `gif`, `webp`, `svg`, `mp4`, `ico` ]
+    extensions: [`css`, `js`, `png`, `jpg`, `jpeg`, `gif`, `webp`, `svg`, `mp4`, `ico` ],
+    enableLogging: true,
+    hashTruncate: 0
   });
 
   // HTML minification
@@ -41,9 +45,5 @@ module.exports = async function(eleventyConfig) {
     markdownTemplateEngine: `njk`,
     htmlTemplateEngine: `njk`,
     dataTemplateEngine: `njk`,
-    // Set up directory structure:
-    dir: {
-      input: `src`,
-    },
   };
 };
