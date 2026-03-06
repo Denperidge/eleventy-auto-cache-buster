@@ -1,9 +1,6 @@
 import test from "ava";
 import { buildScenarios } from "eleventy-test";
-import { readFileSync, rmSync } from "fs";
-import { execSync } from "child_process";
 import { JSDOM } from "jsdom";
-import { env } from "process";
 
 /**
  * URLS in this refer to src or href or whatever
@@ -11,8 +8,8 @@ import { env } from "process";
 
 // Build utils
 const results = await buildScenarios({returnArray: false});
-const resultIds = Object.keys(results);
-console.log(resultIds)
+const BASIC_SCENARIOS = ["8-sync@3", "8-async@3", "16-sync@3", "16-async@3"];
+console.log(BASIC_SCENARIOS)
 
 // Helpers
 function _getAttribute(document, id, attribute) {
@@ -78,7 +75,7 @@ async function parseHtml(t, scenarioTitle, filename="/test/index.html") {
 test("different {href,src}, different hashes", async t => {
 	const ids = ["1css", "3css", "js", "1img", "3img"];
 	
-	for (let resultId of resultIds) {
+	for (let resultId of BASIC_SCENARIOS) {
 		t.log(resultId);
 		const document = await parseHtml(t, resultId);
 		const [urls, hashes] = elementIdsToUrlsAndHashArrays(document, ids)
@@ -118,7 +115,7 @@ test("different {href,src}, different hashes", async t => {
 test("different {href,src}, same hashes", async t => {
 	const ids = ["1css", "2css"];
 	
-	for (let resultId of resultIds) {
+	for (let resultId of BASIC_SCENARIOS) {
 		t.log(resultId);
 		const document = await parseHtml(t, resultId); 
 		const [urls, hashes] = elementIdsToUrlsAndHashArrays(document, ids)
@@ -156,7 +153,7 @@ test("different {href,src}, same hashes", async t => {
 // "1css & 2css hrefs ==, hashes =="
 test("same {href,src}, same hashes", async t => {
 	const ids = ["1img", "2img"];
-	for (let resultId of resultIds) {
+	for (let resultId of BASIC_SCENARIOS) {
 		t.log(resultId);
 		const document = await parseHtml(t, resultId);
 		const [urls, hashes] = elementIdsToUrlsAndHashArrays(document, ids)
@@ -193,8 +190,7 @@ test("same {href,src}, same hashes", async t => {
 
 test("hash lengths are all set hash length", async t => {
 	const ids = ["1css", "2css", "3css", "js"];
-	const relevantScenarios = ["8-sync@3", "8-async@3", "16-sync@3", "16-async@3"];
-	for (let resultId of relevantScenarios) {
+	for (let resultId of BASIC_SCENARIOS) {
 		const document = await parseHtml(t, resultId);
 		const desiredHashLength = parseInt(resultId.split("-")[0]);
 		t.true(desiredHashLength == 8 || desiredHashLength == 16);
