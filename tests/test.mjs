@@ -1,4 +1,5 @@
 import test from "ava";
+import { buildScenarios } from "eleventy-test";
 import { readFileSync, rmSync } from "fs";
 import { execSync } from "child_process";
 import { JSDOM } from "jsdom";
@@ -9,32 +10,19 @@ import { env } from "process";
  */
 
 // Build utils
-const DIR_TEST = "tests/"
-const OUT_DIR = DIR_TEST + "out/" 
-
-rmSync(OUT_DIR, { recursive: true, force: true })
-
-function buildEleventy(hashTruncate=16, runAsync=true, useServe=false) {
-	// I tried using Eleventy programmatically. Emphasis on tried
-	// Thanks to https://github.com/actions/setup-node/issues/224#issuecomment-943531791
-	try {
-		const command = useServe ? "timeout 4 npx @11ty/eleventy --serve" : "npx @11ty/eleventy"
-		execSync(command, { env: { ...env, HASHTRUNCATE:hashTruncate, RUNASYNC: +runAsync /* convert to int */, USESERVE: +useServe }, cwd: DIR_TEST});
-	} catch (e) {
-		console.error(e);
-		if (!useServe) {
-			throw e;
-		}
-	}
-	const outputHtml = readFileSync(`${OUT_DIR}${hashTruncate}-${runAsync ? "async" : "sync"}-${useServe ? "build" : "serve"}/test/index.html`, { encoding: "utf-8" });
-	const dom = (new JSDOM(outputHtml));
-	return dom.window.document;
-}
-
+const results = await buildScenarios({returnArray: false});
+const resultIds = Object.keys(results);
+console.log(resultIds)
 
 // Helpers
 function _getAttribute(document, id, attribute) {
-	return document.getElementById(id).getAttribute(attribute);
+	try { 
+		return document.getElementById(id).getAttribute(attribute);
+	} catch (e) {
+		if (e instanceof TypeError) {
+			throw TypeError()
+		}
+	}
 }
 
 function hash(string) {
@@ -72,11 +60,27 @@ function removeDuplicatesFromArray(arr) {
 	return Array.from(new Set(arr));
 }
 
+async function parseHtml(t, scenarioTitle, filename="/test/index.html") {
+	try {
+		const result = results[scenarioTitle]
+		const dom = (new JSDOM(
+			await result.getFileContent(filename)
+		));
+		return dom.window.document;
+	} catch (e) {
+		t.log(scenarioTitle, filename);
+		throw e;
+	}
+}
 
 // Tests
 // "1css & 3css hrefs =/=, hashes =="
-const differentUrlsDifferentHashes = test.macro({
-	exec(t, document, ids) {
+test("different {href,src}, different hashes", async t => {
+	const ids = ["1css", "3css", "js", "1img", "3img"];
+	
+	for (let resultId of resultIds) {
+		t.log(resultId);
+		const document = await parseHtml(t, resultId);
 		const [urls, hashes] = elementIdsToUrlsAndHashArrays(document, ids)
 		console.log(`Checking for different hrefs, same hashes (${ids})`)
 		console.log("-----------------------------------------")
@@ -107,15 +111,16 @@ const differentUrlsDifferentHashes = test.macro({
 
 		console.log();
 		
-	},
-	title(providedTitle = "", document, ids) {
-		return `${providedTitle} ${ids}: different {href,src}, different hashes`;	
 	}
 });
 
 // "1css & 2css hrefs =/=, hashes =="
-const differentUrlsSameHashes = test.macro({
-	exec(t, document, ids){
+test("different {href,src}, same hashes", async t => {
+	const ids = ["1css", "2css"];
+	
+	for (let resultId of resultIds) {
+		t.log(resultId);
+		const document = await parseHtml(t, resultId); 
 		const [urls, hashes] = elementIdsToUrlsAndHashArrays(document, ids)
 		console.log(`Checking for different hrefs, same hashes (${ids})`)
 		console.log("-----------------------------------------")
@@ -144,16 +149,16 @@ const differentUrlsSameHashes = test.macro({
 		console.log("Hashes length (duplicates removed):", removeDuplicatesFromArray(hashes).length)
 
 		console.log();
-	}, 
-	title(providedTitle = "", document, ids) {
-		return `${providedTitle} ${ids}: different {href,src}, same hashes`;
-	}
+	};
 });
 
 
 // "1css & 2css hrefs ==, hashes =="
-const sameUrlsSameHashes = test.macro({
-	exec(t, document, ids){
+test("same {href,src}, same hashes", async t => {
+	const ids = ["1img", "2img"];
+	for (let resultId of resultIds) {
+		t.log(resultId);
+		const document = await parseHtml(t, resultId);
 		const [urls, hashes] = elementIdsToUrlsAndHashArrays(document, ids)
 		console.log(`Checking for different hrefs, same hashes (${ids})`)
 		console.log("-----------------------------------------")
@@ -182,14 +187,18 @@ const sameUrlsSameHashes = test.macro({
 		console.log("Hashes length (duplicates removed):", removeDuplicatesFromArray(hashes).length)
 
 		console.log();
-	}, 
-	title(providedTitle = "", document, ids) {
-		return `${providedTitle} ${ids}: same {href,src}, same hashes`;
 	}
 });
 
-const correctHashLengths = test.macro({
-	exec(t, document, ids, desiredHashLength) {
+
+test("hash lengths are all set hash length", async t => {
+	const ids = ["1css", "2css", "3css", "js"];
+	const relevantScenarios = ["8-sync@3", "8-async@3", "16-sync@3", "16-async@3"];
+	for (let resultId of relevantScenarios) {
+		const document = await parseHtml(t, resultId);
+		const desiredHashLength = parseInt(resultId.split("-")[0]);
+		t.true(desiredHashLength == 8 || desiredHashLength == 16);
+
 		const [urls, hashes] = elementIdsToUrlsAndHashArrays(document, ids);
 		console.log(`Checking correctHashLengths (${ids})`)
 		console.log("---------------------------")
@@ -198,21 +207,5 @@ const correctHashLengths = test.macro({
 			console.log(`${fileHash} (${fileHash.length}) == ${desiredHashLength}`)
 		});
 		console.log();
-	},
-	title(providedTitle = "", document, ids, desiredHashLength) {
-		return `${providedTitle} ${ids} hash lengths are all set hash length (${desiredHashLength})`;
 	}
-});
-
-[16, 8].forEach((trunc) => {
-	[true, false].forEach((runAsync) => {
-		[true, false].forEach((useServe) => {
-			const document = buildEleventy(trunc, runAsync, useServe);
-			const prefix = `[hashTruncate: ${trunc.toString().padEnd(2, " ")}, runAsync: ${runAsync}, useServe: ${useServe}]`;
-			test(prefix, differentUrlsDifferentHashes, document, ["1css", "3css", "js", "1img", "3img"]);
-			test(prefix, differentUrlsSameHashes, document, ["1css", "2css"]);
-			test(prefix, sameUrlsSameHashes, document, ["1img", "2img"]);
-			test(prefix, correctHashLengths, document, ["1css", "2css", "3css", "js"], trunc)
-		});
-	});
 });

@@ -746,6 +746,11 @@ ee-first@1.1.1:
   resolved "https://registry.yarnpkg.com/ee-first/-/ee-first-1.1.1.tgz#590c61156b0ae2f4f0255732a158b266bc56b21d"
   integrity sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==
 
+eleventy-test@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/eleventy-test/-/eleventy-test-2.0.0.tgz#1f019d4ed6bbe84809b6a12cac4de62b98b5f4f2"
+  integrity sha512-J/9kgcoJnAMY4ofSclSdCIQMWwg4Fzpj25b7Y3xEc/066yBWyDE2Lwc632pdMMLzl/EHZv9RoYmeg7KD/+LIYg==
+
 emittery@^1.2.0:
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/emittery/-/emittery-1.2.1.tgz#393bc9c96028dcc93ff92f9d1c4a999f2b96ff98"

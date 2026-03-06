@@ -16,6 +16,7 @@
   "devDependencies": {
     "@11ty/eleventy": "^3.1.2",
     "ava": "^7.0.0",
+    "eleventy-test": "^2.0.0",
     "jsdom": "^28.1.0"
   }
 }
