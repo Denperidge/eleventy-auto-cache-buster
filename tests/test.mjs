@@ -25,11 +25,18 @@ function _getAttribute(document, id, attribute) {
 }
 
 function hash(string) {
-	const paramIndex = string.lastIndexOf("v=");
-	if (paramIndex < 0) {
+	// make a URL and get the search params
+	const queryStringIndex = string.indexOf('?');
+	if (queryStringIndex < 0) {
+		throw new Error("Query string could not be found in " + string);
+	}
+	const queryString = string.substring(queryStringIndex)
+	const searchParams = new URLSearchParams(queryString);
+	const param = searchParams.get("v");
+	if (param === null) {
 		throw new Error("Hash could not be found in " + string);
 	}
-	return string.substring(paramIndex + 2)
+	return param
 }
 
 function getUrl(document, id) {

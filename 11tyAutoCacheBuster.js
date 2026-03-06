@@ -2,6 +2,7 @@ const fs     = require("fs");
 const path   = require("path");
 const crypto = require("crypto");
 const glob   = require("glob");
+const escape = require("regexp.escape");
 
 let enableLogging = false;
 let algorithm     = "md5";
@@ -93,42 +94,27 @@ function writeAsync(outputPath, outputData) {
 function replaceAssetsInFile(fileData, filePath, assetPathsAndHashes, writeFunc) {
     let outputString  = fileData;
     let outputChanged = false;  // Check if any hashes have been added
-
-    // Check for every asset
     assetPathsAndHashes.forEach(({assetPath, assetHash}) => {
-        let found = false;
-        let indexPush = 0;  // With values being replaced, the index values will need to be adjusted
-        const regex = new RegExp(assetPath.replaceAll("/", "\\/").replaceAll("?", "\\?") + '.*?(?=")', "g")
-        const matches = outputString.matchAll(regex);
-
-        while ((match = matches.next()).done != true) {
-            found = true;
-            const value = match.value
-            const path = value[0]
-            logGreen(`[ACB] ${filePath} contains asset ${assetPath} (matched on: ${path})`)
-
-            // Optionally truncate
-            if (hashTruncate > 0) {
-                assetHash = assetHash.substring(0, hashTruncate);
-            }
-
-            const seperator = path.includes("?") ? "&" : "?";
-            const newPath = `${path}${seperator}v=${assetHash}`;
-            // Replace asset path with asset path with hash
-            outputString = outputString.substring(0, value.index + indexPush)
-                + newPath
-                + outputString.substring(value.index + indexPush + path.length)
-
-            indexPush += newPath.length - path.length;
-
-            // Write changes to file
+        // Optionally truncate
+        if (hashTruncate > 0) {
+            assetHash = assetHash.substring(0, hashTruncate);
+        }
+        // find and replace all instances of the asset URL
+        const assetPathRegexString = escape(assetPath);
+        const regexWithQueryString = new RegExp(`${assetPathRegexString}\\?`, 'g')
+        const regexWithoutQueryString = new RegExp(`${assetPathRegexString}(?!\\?)`, 'g')
+        const newOutputString = outputString
+            .replaceAll(regexWithQueryString, `${assetPath}?v=${assetHash}&`)
+            .replaceAll(regexWithoutQueryString, `${assetPath}?v=${assetHash}`);
+        // If anything was replaced, track that to write the file after all asset checks
+        if (newOutputString != outputString) {
+            logGreen(`[ACB] ${filePath} contains asset ${assetPath}`)
             outputChanged = true;
+            outputString = newOutputString;
+        } else {
+            logRegular(`[ACB] ${filePath} does NOT contain asset ${assetPath}. Skipping`)   
         }
-        if (!found) {
-            logRegular(`[ACB] ${filePath} does NOT contain asset ${assetPath}. Skipping`)                        
-        }
-    });
-
+    })
     if (outputChanged) {
         writeFunc(filePath, outputString);
     }
