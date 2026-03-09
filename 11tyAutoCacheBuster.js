@@ -120,6 +120,11 @@ function replaceAssetsInFile(fileData, filePath, assetPathsAndHashes, writeFunc)
     }
 }
 
+// Meant to normalise eleventt.after directories.output to dir.output style
+function stripPath(path) {
+    return path.replace(/^\.\//m, "");
+}
+
 module.exports = function(eleventyConfig, options=defaultOptions) {
     // Override default options with set options
     options = Object.assign(defaultOptions, options, {
@@ -143,8 +148,9 @@ module.exports = function(eleventyConfig, options=defaultOptions) {
 
     if (runAsync) {
         eleventyConfig.on("eleventy.after", async ({ directories, results, runMode, outputMode }) => {
-            logYellow(`[ACB] Collecting assets & calculating hashes using ${globstring} in ${directories.output}...`);
-            const assetPathsAndHashes = collectLocalAssets(await glob.glob(directories.output + "/" + globstring, globOptions), directories.output, extensions);
+            const outputDir = stripPath(directories.output);
+            logYellow(`[ACB] Collecting assets & calculating hashes using ${globstring} in ${outputDir}...`);
+            const assetPathsAndHashes = collectLocalAssets(await glob.glob(outputDir + "/" + globstring, globOptions), outputDir, extensions);
 
             logRegular(`[ACB] Replacing in output...`);
             results.forEach(({inputPath, outputPath, url, content}) => {
@@ -162,8 +168,9 @@ module.exports = function(eleventyConfig, options=defaultOptions) {
         });
     } else {
         eleventyConfig.on("eleventy.after", ({ directories, results, runMode, outputMode }) => {
+            const outputDir = stripPath(directories.output);
             logYellow(`[ACB] Collecting assets & calculating hashes using ${globstring}...`);
-            const assetPathsAndHashes = collectLocalAssets(glob.globSync(directories.output + "/" + globstring, globOptions), directories.output, extensions);
+            const assetPathsAndHashes = collectLocalAssets(glob.globSync(outputDir + "/" + globstring, globOptions), outputDir, extensions);
 
             logRegular(`[ACB] Replacing in output...`);
             results.forEach(({inputPath, outputPath, url, content}) => {
