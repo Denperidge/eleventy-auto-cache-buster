@@ -15,8 +15,9 @@ Into...
 ## How-to
 ### Getting started
 1. Install the plugin
+    - pnpm: `pnpm install eleventy-auto-cache-buster`
     - Yarn: `yarn add -D eleventy-auto-cache-buster`
-    - Npm: `npm install --save-dev eleventy-auto-cache-buster`
+    - npm: `npm install --save-dev eleventy-auto-cache-buster`
 2. Enable the plugin
     ```js
     // .eleventy.js
@@ -54,6 +55,20 @@ module.exports = function (eleventyConfig) {
 }
 ```
 
+### Clone locally/dev
+This requires git & Node.js to be installed
+```bash
+# Clone repository & enter directory
+git clone https://github.com/Denperidge/eleventy-auto-cache-buster.git
+cd eleventy-auto-cache-buster
+
+# Prepare correct pnpm version
+corepack enable
+# Install dependencies
+pnpm install
+# Run tests
+pnpm test
+```
 
 ## License
 This project is licensed under the [MIT License](LICENSE).
