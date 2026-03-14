@@ -2,7 +2,7 @@
 # https://yarnpkg.com/configuration/yarnrc#npmMinimalAgeGate
 minimumReleaseAge: 4320  # in minutes
 minimumReleaseAgeExclude:
-  - undici
+  - undici@7.24.2
 
 # Block install scripts
 # https://pnpm.io/settings#strictdepbuilds
