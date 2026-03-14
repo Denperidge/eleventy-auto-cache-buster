@@ -15,8 +15,8 @@
     "test": "ava tests/test.mjs --timeout=30s"
   },
   "dependencies": {
-    "glob": "^13.0.6",
-    "regexp.escape": "^2.0.1"
+    "escape-string-regexp": "^5.0.0",
+    "glob": "^13.0.6"
   },
   "devDependencies": {
     "@11ty/eleventy": "^3.1.2",

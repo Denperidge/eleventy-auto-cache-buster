@@ -2,7 +2,10 @@ const fs     = require("fs");
 const path   = require("path");
 const crypto = require("crypto");
 const glob   = require("glob");
-const escape = require("regexp.escape");
+
+const regexEscape = parseInt(process.versions.node.split(".")[0]) >= 24 
+    ? RegExp.escape 
+    : require("escape-string-regexp").default;
 
 let enableLogging = false;
 let algorithm     = "md5";
@@ -100,7 +103,7 @@ function replaceAssetsInFile(fileData, filePath, assetPathsAndHashes, writeFunc)
             assetHash = assetHash.substring(0, hashTruncate);
         }
         // find and replace all instances of the asset URL
-        const assetPathRegexString = escape(assetPath);
+        const assetPathRegexString = regexEscape(assetPath);
         const regexWithQueryString = new RegExp(`${assetPathRegexString}\\?`, 'g')
         const regexWithoutQueryString = new RegExp(`${assetPathRegexString}(?!\\?)`, 'g')
         const newOutputString = outputString
