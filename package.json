@@ -6,6 +6,9 @@
   "repository": "https://github.com/Denperidge/eleventy-auto-cache-buster.git",
   "author": "Denperidge",
   "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "start": "pushd tests/scenarios/8-sync@3 && eleventy && popd",
     "test": "ava tests/test.mjs --timeout=30s"
