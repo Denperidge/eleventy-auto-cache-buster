@@ -84,14 +84,17 @@ function readDirectoryFiles(path) {
     return readdirSync(path, {withFileTypes: true}).filter(path => path.isFile()).map(path => path.name);
 }
 
+const CLA_TEST_DATA = {
+    outputDir: "tests/input/",
+    assetDir:  "tests/input/assets",
+    assetFiles: readDirectoryFiles("tests/input/assets").map(filename => "tests/input/assets/"+filename).concat(
+        readDirectoryFiles("tests/input/assets/subdir").map(name => "tests/input/assets/subdir/" + name)),
+};
+
 test("collectLocalAssets works as expected", t => {
-    const outputDir = "tests/input/";
-    const assetDir = outputDir + "assets";
+    const {outputDir, assetFiles} = CLA_TEST_DATA;
 
-    const assetFiles = readDirectoryFiles(assetDir).map(filename => assetDir+"/"+filename).concat(
-        readDirectoryFiles(assetDir + "/subdir").map(name => assetDir + "/subdir/" + name));
-    const collected = collectLocalAssets(assetFiles, "tests/input/");
-
+    const collected = collectLocalAssets(assetFiles, outputDir);
     const expected = assetFiles.map(assetPath => {
         return {
             assetPath: assetPath.replace(outputDir, ""),
@@ -102,3 +105,19 @@ test("collectLocalAssets works as expected", t => {
 
     t.deepEqual(expected, collected);
 })
+
+test("collectLocalAssets options extensions & hashFunction are applied", t => {
+    const {outputDir, assetFiles} = CLA_TEST_DATA;
+
+    const collected = collectLocalAssets(assetFiles, outputDir, ["css", "jpg"], content => {return "testvalue"});
+    
+
+    const expected = assetFiles.filter(filename => filename.toLowerCase().endsWith("jpg") || filename.toLowerCase().endsWith("css")).map(assetPath => {
+        return {
+            assetPath: assetPath.replace(outputDir, ""),
+            assetHash: "testvalue"
+        }
+    })
+
+    t.deepEqual(expected, collected);
+});
