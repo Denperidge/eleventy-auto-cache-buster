@@ -186,3 +186,12 @@ module.exports = function(eleventyConfig, options=defaultOptions) {
         });
     }
 }
+
+this.functions = {
+    _logColour, logRegular, logGreen, logRed, logYellow,
+    hash,
+    writeSync, writeAsync,
+    collectLocalAssets,
+    replaceAssetsInFile,
+    stripPath
+}
