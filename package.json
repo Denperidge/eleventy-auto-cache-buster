@@ -5,6 +5,7 @@
   "main": "11tyAutoCacheBuster.js",
   "repository": "https://github.com/Denperidge/eleventy-auto-cache-buster.git",
   "author": "Denperidge",
+  "type": "module",
   "license": "MIT",
   "engines": {
     "node": ">=20"

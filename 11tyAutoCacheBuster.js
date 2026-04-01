@@ -1,11 +1,13 @@
-const fs     = require("fs");
-const path   = require("path");
-const crypto = require("crypto");
-const glob   = require("glob");
-
+import fs        from "fs";
+import path      from "path";
+import crypto    from "crypto";
+import * as glob from "glob";
+/*
 const regexEscape = parseInt(process.versions.node.split(".")[0]) >= 24 
     ? RegExp.escape 
-    : require("escape-string-regexp").default;
+    : (import ("escape-string-regexp").default;
+*/
+const regexEscape = (await import("escape-string-regexp")).default;
 
 let enableLogging = false;
 let algorithm     = "md5";
