@@ -1,4 +1,4 @@
-import { readFileSync } from "fs";
+import { readFileSync, existsSync, mkdirSync } from "fs";
 import { readFile, rm } from "fs/promises";
 import { spawn } from "child_process";
 
@@ -27,6 +27,7 @@ function testLog(logFunc="logRegular", message="test", enableLogging=true, logCo
 }
 
 test.before("Clear test files", t => {
+    if (!existsSync(TEST_DIR)) {mkdirSync(TEST_DIR);}
     Promise.all([TEST_WRITE_ASYNC, TEST_WRITE_SYNC].map(file => rm(file, {force: true})));
 });
 
