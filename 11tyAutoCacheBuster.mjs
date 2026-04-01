@@ -3,9 +3,15 @@ import path      from "path";
 import crypto    from "crypto";
 import * as glob from "glob";
 
-const regexEscape = parseInt(process.versions.node.split(".")[0]) >= 24 
-    ? RegExp.escape 
-    : require("escape-string-regexp").default;
+/**
+ * De-facto polyfill until Node 22 is EOL,
+ * copied into a one-liner to reduce NPM dependencies
+ * Source: https://github.com/sindresorhus/escape-string-regexp
+ * License: MIT - Sindre Sorhus - https://github.com/sindresorhus/escape-string-regexp/blob/main/license
+ */
+function regexEscape(string) {
+    return string.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&').replace(/-/g, '\\x2d');
+}
 
 let enableLogging = false;
 let algorithm     = "md5";

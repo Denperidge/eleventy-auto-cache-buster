@@ -18,7 +18,6 @@
     "test:integration": "ava tests/integration.mjs --timeout=30s"
   },
   "dependencies": {
-    "escape-string-regexp": "^5.0.0",
     "glob": "^13.0.6"
   },
   "pnpm": {
