@@ -61,7 +61,16 @@ const defaultOptions = {
     hashFunction:  hash,
 }
 
-export function collectLocalAssets(globResults=[], outputDir, extensions=defaultOptions.extensions) {
+/**
+ * 
+ * @param {Array<string>} globResults - Relative filepaths from & including output dir (for example: ["_site/eleventy-test-out/test/index.html"])
+ * @param {string} - Relative path to Eleventy output directory (for example: _site)
+ * @param {Array<string>} extensions - Extensions to look for (for example: ["css", "js"]) 
+ * @param {function} hashFunction - Function that takes a string and returns a content hash
+ * @see defaultOptions for the default extensions & hashFunction
+ * @returns {Array<{assetPath: string, assetHash: string}>} For example: [{assetPath: "assets/example.js", assetHash: "8e6b95c8c4091239f9394ed47cf21ad3"}]
+ */
+export function collectLocalAssets(globResults=[], outputDir, extensions=defaultOptions.extensions, hashFunction=defaultOptions.hashFunction) {
     const assetPaths = [];
     globResults.forEach((assetFullPath) => {
         assetFullPath = assetFullPath.replace(/\\/g, "/");
@@ -75,10 +84,7 @@ export function collectLocalAssets(globResults=[], outputDir, extensions=default
         const assetHash = hashFunction(fs.readFileSync(assetFullPath));
         logGreen(`[ACB] ${assetPath} hash = ${assetHash}`);
 
-        assetPaths.push({
-            assetPath: assetPath.replace(outputDir + "/", ""),
-            assetHash: assetHash
-        });
+        assetPaths.push({ assetPath, assetHash });
     });
 
     logYellow(`[ACB] Collected all asset hashes!`);
@@ -146,11 +152,10 @@ export default function(eleventyConfig, options=defaultOptions) {
         // Object.assign seems to overwrite nested objects. @emiliorcueto added the clever handling below
         globOptions: Object.assign(defaultOptions.globOptions, options.globOptions) // -- ensure `nodir` is always set
     });
-    const { globstring, globOptions, extensions, runAsync }  = options;
+    const { globstring, globOptions, extensions, runAsync, hashFunction }  = options;
     // Set options to globals
     enableLogging     = options.enableLogging;
     hashTruncate      = options.hashTruncate;
-    hashFunction      = options.hashFunction;
     algorithm         = options.hashAlgorithm;
     
 
@@ -165,7 +170,7 @@ export default function(eleventyConfig, options=defaultOptions) {
         eleventyConfig.on("eleventy.after", async ({ directories, results, runMode, outputMode }) => {
             const outputDir = stripPath(directories.output);
             logYellow(`[ACB] Collecting assets & calculating hashes using ${globstring} in ${outputDir}...`);
-            const assetPathsAndHashes = collectLocalAssets(await glob.glob(outputDir + "/" + globstring, globOptions), outputDir, extensions);
+            const assetPathsAndHashes = collectLocalAssets(await glob.glob(outputDir + "/" + globstring, globOptions), outputDir, extensions, hashFunction);
 
             logRegular(`[ACB] Replacing in output...`);
             results.forEach(({inputPath, outputPath, url, content}) => {

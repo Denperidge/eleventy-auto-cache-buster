@@ -1,11 +1,11 @@
-import { readFileSync, existsSync, mkdirSync } from "fs";
-import { readFile, rm } from "fs/promises";
+import { readFileSync, readdirSync, existsSync, mkdirSync } from "fs";
+import { rm } from "fs/promises";
 import { spawn } from "child_process";
 
 import test from "ava";
-import md5 from "md5";
+import md5 from "md5-hex";
 
-import { stripPath, hash, writeSync, logRed } from "../11tyAutoCacheBuster.mjs";
+import { stripPath, hash, writeSync, collectLocalAssets } from "../11tyAutoCacheBuster.mjs";
 
 const TEST_STRING = "Here is a string! @@\n@@"
 const TEST_DIR = "tests/eleventy-test-out/";
@@ -78,4 +78,27 @@ test("logging with colours works as expected", async t => {
     t.deepEqual(data, expectedData, "Unexpected log output from _logColour");
     const customLoggingDisabled = await testLog("_logColour", "test", false, 13);
     t.deepEqual(customLoggingDisabled, "", "Unexpected log output from _logColour");
+})
+
+function readDirectoryFiles(path) {
+    return readdirSync(path, {withFileTypes: true}).filter(path => path.isFile()).map(path => path.name);
+}
+
+test("collectLocalAssets works as expected", t => {
+    const outputDir = "tests/input/";
+    const assetDir = outputDir + "assets";
+
+    const assetFiles = readDirectoryFiles(assetDir).map(filename => assetDir+"/"+filename).concat(
+        readDirectoryFiles(assetDir + "/subdir").map(name => assetDir + "/subdir/" + name));
+    const collected = collectLocalAssets(assetFiles, "tests/input/");
+
+    const expected = assetFiles.map(assetPath => {
+        return {
+            assetPath: assetPath.replace(outputDir, ""),
+            assetHash: md5(
+                readFileSync(assetPath), {})
+        }
+    })
+
+    t.deepEqual(expected, collected);
 })

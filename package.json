@@ -35,7 +35,7 @@
     "eleventy-test": "^2.0.1",
     "html-minifier-terser": "^7.2.0",
     "jsdom": "^28.1.0",
-    "md5": "^2.3.0",
+    "md5-hex": "^5.0.0",
     "rss-parser": "^3.13.0"
   }
 }
