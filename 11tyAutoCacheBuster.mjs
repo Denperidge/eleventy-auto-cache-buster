@@ -34,7 +34,7 @@ export function logRegular(string) {
 
 export function _logColour(string, colourCode) {
     if (enableLogging) {
-        console.log(`\x1b[${colourCode}m${string} \x1b[0m`);
+        console.log(`\x1b[${colourCode}m${string}\x1b[0m`);
     }
 }
 
@@ -134,6 +134,11 @@ export function replaceAssetsInFile(fileData, filePath, assetPathsAndHashes, wri
 export function stripPath(path) {
     return path.replace(/^\.\//m, "");
 }
+
+// Made for testing use
+export function _forceLogging(enable=true) {
+    enableLogging = enable;
+};
 
 export default function(eleventyConfig, options=defaultOptions) {
     // Override default options with set options

@@ -1,4 +1,4 @@
 node_modules/
 eleventy-test-out/
 # Tests
-.nyc_output/
+coverage/
