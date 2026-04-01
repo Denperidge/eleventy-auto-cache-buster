@@ -21,16 +21,15 @@ Into...
 2. Enable the plugin
     ```js
     // .eleventy.js
-    
-    const eleventyAutoCacheBuster = require("eleventy-auto-cache-buster");
-    
-    // Alternatively, you can use ESM
     import eleventyAutoCacheBuster from "eleventy-auto-cache-buster";
 
     module.exports = function (eleventyConfig) {
         eleventyConfig.addPlugin(eleventyAutoCacheBuster);
         // ...
     }
+
+    // Alternatively, you can use CJS
+    const eleventyAutoCacheBuster = require("eleventy-auto-cache-buster").default;
     ```
     
 3. That's it! No further changes are required.
