@@ -10,7 +10,7 @@ const parser = new Parser();
 
 // Build utils
 const results = await buildScenarios({returnArray: false});
-const BASIC_SCENARIOS = ["8-sync@3", "8-async@3", "16-sync@3", "16-async@3"];
+const BASIC_SCENARIOS = ["16-cjs@3", "16-esm@3", "8-sync@3", "8-async@3", "16-sync@3", "16-async@3"];
 console.log(BASIC_SCENARIOS)
 
 // Helpers

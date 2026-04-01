@@ -13,7 +13,7 @@
   "scripts": {
     "start": "pushd tests/scenarios/8-sync@3 && eleventy && popd",
     "test": "pnpm test:unit && pnpm test:integration",
-    "test:unit": "nyc ava tests/unit.js",
+    "test:unit": "nyc ava tests/unit.mjs",
     "test:integration": "ava tests/integration.mjs --timeout=30s"
   },
   "dependencies": {
