@@ -7,7 +7,7 @@ import * as glob from "glob";
  * De-facto polyfill until Node 22 is EOL,
  * copied into a one-liner to reduce NPM dependencies
  * Source: https://github.com/sindresorhus/escape-string-regexp
- * License: MIT - Sindre Sorhus - https://github.com/sindresorhus/escape-string-regexp/blob/main/license
+ * License: MIT - Sindre Sorhus - see NOTICE file
  */
 function regexEscape(string) {
     return string.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&').replace(/-/g, '\\x2d');
