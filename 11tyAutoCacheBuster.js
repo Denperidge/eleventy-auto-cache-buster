@@ -12,7 +12,7 @@ let algorithm     = "md5";
 let hashTruncate  = 12;
 let hashFunction;
 
-function hash(content) {
+export function hash(content) {
     const currentHash = crypto.createHash(algorithm);
     currentHash.setEncoding("hex");
     currentHash.write(content);
@@ -20,27 +20,27 @@ function hash(content) {
     return currentHash.read();
 }
 
-function logRegular(string) {
+export function logRegular(string) {
     if (enableLogging) {
         console.log(string);
     }
 }
 
-function _logColour(string, colourCode) {
+export function _logColour(string, colourCode) {
     if (enableLogging) {
         console.log(`\x1b[${colourCode}m${string} \x1b[0m`);
     }
 }
 
-function logGreen(string) {
+export function logGreen(string) {
     _logColour(string, "32");
 }
 
-function logYellow(string) {
+export function logYellow(string) {
     _logColour(string, "33");
 }
 
-function logRed(string) {
+export function logRed(string) {
     _logColour(string, "31");
 }
 
@@ -55,7 +55,7 @@ const defaultOptions = {
     hashFunction:  hash,
 }
 
-function collectLocalAssets(globResults=[], outputDir, extensions=defaultOptions.extensions) {
+export function collectLocalAssets(globResults=[], outputDir, extensions=defaultOptions.extensions) {
     const assetPaths = [];
     globResults.forEach((assetFullPath) => {
         assetFullPath = assetFullPath.replace(/\\/g, "/");
@@ -79,7 +79,7 @@ function collectLocalAssets(globResults=[], outputDir, extensions=defaultOptions
     return assetPaths;
 }
 
-function writeSync(outputPath, outputData) {
+export function writeSync(outputPath, outputData) {
     try {
         fs.writeFileSync(outputPath, outputData);
         logGreen(`[ACB] Added hashes to ${outputPath}`);
@@ -88,13 +88,13 @@ function writeSync(outputPath, outputData) {
     }
 }
 
-function writeAsync(outputPath, outputData) {
+export function writeAsync(outputPath, outputData) {
     fs.writeFile(outputPath, outputData, () => {
         logGreen(`[ACB] Added hashes to ${outputPath}`);
     });
 }
 
-function replaceAssetsInFile(fileData, filePath, assetPathsAndHashes, writeFunc) {
+export function replaceAssetsInFile(fileData, filePath, assetPathsAndHashes, writeFunc) {
     let outputString  = fileData;
     let outputChanged = false;  // Check if any hashes have been added
     assetPathsAndHashes.forEach(({assetPath, assetHash}) => {
@@ -123,12 +123,12 @@ function replaceAssetsInFile(fileData, filePath, assetPathsAndHashes, writeFunc)
     }
 }
 
-// Meant to normalise eleventt.after directories.output to dir.output style
-function stripPath(path) {
+// Meant to normalise eleventy.after directories.output to dir.output style
+export function stripPath(path) {
     return path.replace(/^\.\//m, "");
 }
 
-module.exports = function(eleventyConfig, options=defaultOptions) {
+export default function(eleventyConfig, options=defaultOptions) {
     // Override default options with set options
     options = Object.assign(defaultOptions, options, {
         // Object.assign seems to overwrite nested objects. @emiliorcueto added the clever handling below
@@ -185,13 +185,4 @@ module.exports = function(eleventyConfig, options=defaultOptions) {
             });
         });
     }
-}
-
-this.functions = {
-    _logColour, logRegular, logGreen, logRed, logYellow,
-    hash,
-    writeSync, writeAsync,
-    collectLocalAssets,
-    replaceAssetsInFile,
-    stripPath
 }
