@@ -12,14 +12,17 @@ const TEST_DIR = "tests/eleventy-test-out/";
 const TEST_WRITE_SYNC = TEST_DIR + "sync";
 const TEST_WRITE_ASYNC = TEST_DIR + "async";
 
-function testLog(logFunc="logRegular", message="test") {
+function testLog(logFunc="logRegular", message="test", enableLogging=true, logColour) {
     return new Promise((resolve, reject) => {
-        spawn(`echo 'const {_forceLogging, ${logFunc}} = require("./11tyAutoCacheBuster.mjs"); _forceLogging(); ${logFunc}("${message}")' | node`, {shell: true})
+        spawn(`echo 'const {_forceLogging, ${logFunc}} = require("./11tyAutoCacheBuster.mjs"); _forceLogging(${enableLogging}); ${logFunc}("${message}"${logColour ? ", "+logColour : ""})' | node`, {shell: true})
             .stdout.on("data", (data) => { resolve(
                 JSON.stringify(
                     data.toString().replace("\n", "")
                 ).replace(/^"|"$/g, "")
-            )});
+            )})
+            .on("close", () => {
+                resolve("");
+            });
     })
 }
 
@@ -47,9 +50,11 @@ test("writeSync works as expected", t => {
 });
 
 test("logRegular works as expected", async t => {
-    const data = await testLog("logRegular", "test");
-    t.deepEqual(data, "test", "Unexpected log output from logRegular")
-})
+    const loggingEnabled = await testLog("logRegular", "test");
+    t.deepEqual(loggingEnabled, "test", "Unexpected log output from logRegular");
+    const loggingDisabled = await testLog("logRegular", "test", false);
+    t.deepEqual(loggingDisabled, "", "Unexpected log output from logRegular");
+});
 
 
 test("logging with colours works as expected", async t => {
@@ -62,5 +67,14 @@ test("logging with colours works as expected", async t => {
         const data = await testLog(func, "test");
         const expectedData = `\\u001b[${number}mtest\\u001b[0m`
         t.deepEqual(data, expectedData, "Unexpected log output from " + func)
+    
+        const loggingDisabled = await testLog("logRegular", "test", false);
+        t.deepEqual(loggingDisabled, "", "Unexpected log output from " + func);
     }
+
+    const data = await testLog("_logColour", "test", true, 13);
+    const expectedData = `\\u001b[13mtest\\u001b[0m`;
+    t.deepEqual(data, expectedData, "Unexpected log output from _logColour");
+    const customLoggingDisabled = await testLog("_logColour", "test", false, 13);
+    t.deepEqual(customLoggingDisabled, "", "Unexpected log output from _logColour");
 })
