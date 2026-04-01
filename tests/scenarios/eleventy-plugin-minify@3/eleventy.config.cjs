@@ -1,6 +1,6 @@
 `use strict`;
 
-const eleventyAutoCacheBuster          = require('../../../11tyAutoCacheBuster.js');
+const eleventyAutoCacheBuster          = require('../../../11tyAutoCacheBuster.mjs').default;
 const eleventyPluginFilesMinifier      = require('@codestitchofficial/eleventy-plugin-minify');
 
 const siteURL    = `https://my.web.site`;

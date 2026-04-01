@@ -1,6 +1,6 @@
 `use strict`;
 
-const eleventyAutoCacheBuster          = require('../../../11tyAutoCacheBuster.js');
+const eleventyAutoCacheBuster          = require('../../../11tyAutoCacheBuster.mjs').default;
 const { minify: htmlmin }              = require(`html-minifier-terser`);
 
 const siteURL    = `https://my.web.site`;

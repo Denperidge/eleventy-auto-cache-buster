@@ -1,4 +1,4 @@
-import eleventyAutoCacheBuster from "../../../11tyAutoCacheBuster.js";
+import eleventyAutoCacheBuster from "../../../11tyAutoCacheBuster.mjs";
 
 export default function (eleventyConfig) {
     eleventyConfig.addPlugin(eleventyAutoCacheBuster, {

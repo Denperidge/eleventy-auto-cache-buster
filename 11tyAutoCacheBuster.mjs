@@ -1,7 +1,7 @@
-const fs     = require("fs");
-const path   = require("path");
-const crypto = require("crypto");
-const glob   = require("glob");
+import fs        from "fs";
+import path      from "path";
+import crypto    from "crypto";
+import * as glob from "glob";
 
 const regexEscape = parseInt(process.versions.node.split(".")[0]) >= 24 
     ? RegExp.escape 
@@ -124,11 +124,11 @@ function replaceAssetsInFile(fileData, filePath, assetPathsAndHashes, writeFunc)
 }
 
 // Meant to normalise eleventt.after directories.output to dir.output style
-function stripPath(path) {
+export function stripPath(path) {
     return path.replace(/^\.\//m, "");
 }
 
-module.exports = function(eleventyConfig, options=defaultOptions) {
+export default function(eleventyConfig, options=defaultOptions) {
     // Override default options with set options
     options = Object.assign(defaultOptions, options, {
         // Object.assign seems to overwrite nested objects. @emiliorcueto added the clever handling below
@@ -158,7 +158,7 @@ module.exports = function(eleventyConfig, options=defaultOptions) {
             logRegular(`[ACB] Replacing in output...`);
             results.forEach(({inputPath, outputPath, url, content}) => {
                 if (!globOptions.ignore?.includes(outputPath)) { // -- Do not attempt to read explicitly ignored files as they may no longer exist!
-                    fs.readFile(outputPath, encoding="UTF-8", (err, pageData) => { 
+                    fs.readFile(outputPath, { encoding: "UTF-8" }, (err, pageData) => { 
                         if (err) {
                             logRed(err);
                             throw err;
@@ -178,20 +178,11 @@ module.exports = function(eleventyConfig, options=defaultOptions) {
             logRegular(`[ACB] Replacing in output...`);
             results.forEach(({inputPath, outputPath, url, content}) => {
                 if (!globOptions.ignore?.includes(outputPath)) { // -- Do not attempt to read explicitly ignored files as they may no longer exist!
-                    const pageData = fs.readFileSync(outputPath, encoding="UTF-8"); 
+                    const pageData = fs.readFileSync(outputPath, { encoding: "UTF-8" }); 
                     // Save the output data
                     replaceAssetsInFile(pageData, outputPath, assetPathsAndHashes, writeSync);
                 }
             });
         });
     }
-}
-
-this.functions = {
-    _logColour, logRegular, logGreen, logRed, logYellow,
-    hash,
-    writeSync, writeAsync,
-    collectLocalAssets,
-    replaceAssetsInFile,
-    stripPath
 }
