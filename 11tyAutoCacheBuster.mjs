@@ -5,10 +5,15 @@ import crypto        from "crypto";
 import * as glob     from "glob";
 
 /**
+ * Sanitise a string (particularly, a filepath) for Regex usage
+ * 
  * De-facto polyfill until Node 22 is EOL,
  * copied into a one-liner to reduce NPM dependencies
+ * @author
+ * License: Sindre Sorhus - MIT, see NOTICE file
  * Source: https://github.com/sindresorhus/escape-string-regexp
- * License: MIT - Sindre Sorhus - see NOTICE file
+ * 
+ * @param {string} string String to sanitise
  */
 export function regexEscape(string) {
     return string.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&').replace(/-/g, '\\x2d');
@@ -17,8 +22,13 @@ export function regexEscape(string) {
 let enableLogging = false;
 let algorithm     = "md5";
 let hashTruncate  = 12;
-let hashFunction;
 
+/**
+ * 
+ * 
+ * @param {string} content 
+ * @returns 
+ */
 export function hash(content) {
     const currentHash = crypto.createHash(algorithm);
     currentHash.setEncoding("hex");
@@ -27,28 +37,58 @@ export function hash(content) {
     return currentHash.read();
 }
 
-export function logRegular(string) {
+/**
+ * If logging is enabled, log to console
+ * @param {string} message 
+ */
+export function logRegular(message) {
     if (enableLogging) {
-        console.log(string);
+        console.log(message);
     }
 }
 
-export function _logColour(string, colourCode) {
+/**
+ * If logging is enabled, log to console
+ * using the ANSI color escape sequence
+ * with the passed colourCode
+ * 
+ * @param {string} message Message to log
+ * @param {number} colourCode ANSI color code (e.g. 31)
+ */
+export function _logColour(message, colourCode) {
     if (enableLogging) {
-        console.log(`\x1b[${colourCode}m${string}\x1b[0m`);
+        console.log(`\x1b[${colourCode}m${message}\x1b[0m`);
     }
 }
 
-export function logGreen(string) {
-    _logColour(string, "32");
+/**
+ * If logging is enabled, log message in red
+ * This is mostly used for individual, file-based steps
+ * 
+ * @param {string} message 
+ */
+export function logGreen(message) {
+    _logColour(message, "32");
 }
 
-export function logYellow(string) {
-    _logColour(string, "33");
+/**
+ * If logging is enabled, log message in red
+ * This is mostly used for logging what phase/grand step ACB is
+ * 
+ * @param {string} message
+ */
+export function logYellow(message) {
+    _logColour(message, "33");
 }
 
-export function logRed(string) {
-    _logColour(string, "31");
+/**
+ * If logging is enabled, log message in red
+ * This is mostly used for error logs
+ * 
+ * @param {string} message Message to log 
+ */
+export function logRed(message) {
+    _logColour(message, "31");
 }
 
 const defaultOptions = {
