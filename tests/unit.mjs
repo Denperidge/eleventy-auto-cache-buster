@@ -31,9 +31,12 @@ function testLog(func="logRegular", enableLogging=true, logColour, command=null)
     })
 }
 
-// Before gave issues
-test.after("Clear test files", t => {
+test.before("Create test dir", () => {
     if (!existsSync(TEST_DIR)) {mkdirSync(TEST_DIR);}
+});
+
+test.after("Clear test files", t => {
+    // Removing before gave issues
     Promise.all([TEST_WRITE_ASYNC, TEST_WRITE_SYNC].map(file => rm(file, {force: true})));
 });
 
