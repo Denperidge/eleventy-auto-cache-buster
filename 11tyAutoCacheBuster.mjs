@@ -24,10 +24,12 @@ let algorithm     = "md5";
 let hashTruncate  = 12;
 
 /**
+ * Wrapper function for using Node.JS's crypto
+ * functionality with encoding set to hex
+ * The hash algorithm is "md5" by default
  * 
- * 
- * @param {string} content 
- * @returns 
+ * @param {string} content File contents to hash
+ * @returns {string} Hash from file contents
  */
 export function hash(content) {
     const currentHash = crypto.createHash(algorithm);
