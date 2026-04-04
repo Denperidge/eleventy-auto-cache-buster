@@ -1,7 +1,8 @@
-import fs        from "fs";
-import path      from "path";
-import crypto    from "crypto";
-import * as glob from "glob";
+import fs            from "fs";
+import { writeFile } from "fs/promises" 
+import path          from "path";
+import crypto        from "crypto";
+import * as glob     from "glob";
 
 /**
  * De-facto polyfill until Node 22 is EOL,
@@ -101,9 +102,11 @@ export function writeSync(outputPath, outputData) {
 }
 
 export function writeAsync(outputPath, outputData) {
-    fs.writeFile(outputPath, outputData, () => {
+    return writeFile(outputPath, outputData, {encoding: "utf-8"}).then(() => {
         logGreen(`[ACB] Added hashes to ${outputPath}`);
-    });
+    }).catch(err => {
+        logRed(err);
+    })
 }
 
 export function replaceAssetsInFile(fileData, filePath, assetPathsAndHashes, writeFunc) {
