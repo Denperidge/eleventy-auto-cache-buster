@@ -36,8 +36,13 @@ export function regexEscape(string) {
     return string.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&').replace(/-/g, '\\x2d');
 }
 
-// Meant to normalise eleventt.after directories.output to dir.output style
-//./_site/ -> _site/
+/**
+ * Normalise eleventy.after
+ * from directories.output (>3.x.x) to dir.output (<v2.x.x) style
+ * 
+ * @param {string} path value of directories.output (For example: "./_site/")
+ * @returns value in the style of dir.output (For example: "_site/")
+ */
 export function stripPath(path) {
     return path.replace(/^\.\//m, "");
 }
@@ -58,14 +63,20 @@ export function hash(content) {
     return currentHash.read();
 }
 
-// Made for testing use
+/**
+ * Change global enableLogging variable
+ * Made for testing use
+ * 
+ * @param {boolean} enable true for enabling logging, false for disabling
+ * @default true/enabled 
+ */
 export function _forceLogging(enable=true) {
     enableLogging = enable;
 };
 
 /**
  * If logging is enabled, log to console
- * @param {string} message 
+ * @param {string} message Message to log
  */
 export function logRegular(message) {
     if (enableLogging) {
@@ -91,7 +102,7 @@ export function _logColour(message, colourCode) {
  * If logging is enabled, log message in red
  * This is mostly used for individual, file-based steps
  * 
- * @param {string} message 
+ * @param {string} message Message to log
  */
 export function logGreen(message) {
     _logColour(message, "32");
@@ -101,7 +112,7 @@ export function logGreen(message) {
  * If logging is enabled, log message in red
  * This is mostly used for logging what phase/grand step ACB is
  * 
- * @param {string} message
+ * @param {string} message Message to log
  */
 export function logYellow(message) {
     _logColour(message, "33");
@@ -117,6 +128,13 @@ export function logRed(message) {
     _logColour(message, "31");
 }
 
+/**
+ * Wrapper for fs.writeFileSync,
+ * adding logging & catching
+ * 
+ * @param {string} outputPath path to write to (For example "path/file.json")
+ * @param {string} outputData data to write to file (For example: "File\nContent")
+ */
 export function writeSync(outputPath, outputData) {
     try {
         fs.writeFileSync(outputPath, outputData);
@@ -126,6 +144,13 @@ export function writeSync(outputPath, outputData) {
     }
 }
 
+/**
+ * Wrapper for fs/promises.writeFile,
+ * adding logging & catching
+ * 
+ * @param {string} outputPath path to write to (For example "path/file.json")
+ * @param {string} outputData data to write to file (For example: "File\nContent")
+ */
 export function writeAsync(outputPath, outputData) {
     return writeFile(outputPath, outputData, {encoding: "utf-8"}).then(() => {
         logGreen(`[ACB] Added hashes to ${outputPath}`);
