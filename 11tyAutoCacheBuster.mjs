@@ -162,7 +162,7 @@ export function writeAsync(outputPath, outputData) {
 /**
  * 
  * @param {Array<string>} globResults - Relative filepaths from & including output dir (for example: ["_site/eleventy-test-out/test/index.html"])
- * @param {string} - Relative path to Eleventy output directory (for example: _site)
+ * @param {string} outputDir - Relative path to Eleventy output directory (for example: _site)
  * @param {Array<string>} extensions - Extensions to look for (for example: ["css", "js"]) 
  * @param {function} hashFunction - Function that takes a string and returns a content hash
  * @see defaultOptions for the default extensions & hashFunction
@@ -189,6 +189,23 @@ export function collectLocalAssets(globResults=[], outputDir, extensions=default
     return assetPaths;
 }
 
+/**
+ * Check if any of the assets are found in the passed file content/path
+ * and cache bust them as necessary.
+ * If any assets are found, write the new contents to the passed file path
+ * 
+ * Its peculiar design (.e.g. having to pass a write function & fileData)
+ * allows it to be used both for sync & async purposes
+ * 
+ * @see collectLocalAssets
+ * @see writeAsync
+ * @see writeSync
+ * 
+ * @param {string} fileData original file contents (For example: "File\nContent")
+ * @param {string} filePath path to write to (For example "path/file.json")
+ * @param {Array<{assetPath: string, assetHash: string}>}} assetPathsAndHashes output from collectLocalAssets
+ * @param {function} writeFunc write function to use
+ */
 export function replaceAssetsInFile(fileData, filePath, assetPathsAndHashes, writeFunc) {
     let outputString  = fileData;
     let outputChanged = false;  // Check if any hashes have been added
