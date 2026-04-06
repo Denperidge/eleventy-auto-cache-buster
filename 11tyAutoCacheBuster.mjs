@@ -4,6 +4,23 @@ import path          from "path";
 import crypto        from "crypto";
 import * as glob     from "glob";
 
+/* ----- Defaults & globals ----- */
+let enableLogging = false;
+let algorithm     = "md5";
+let hashTruncate  = 12;
+
+const defaultOptions = {
+    globstring:    "**/*",
+    globOptions:   {nodir: true},
+    extensions:    ["css", "js", "png", "jpg", "jpeg", "gif", "mp4", "ico"],
+    runAsync:      true,
+    hashTruncate:  hashTruncate,
+    enableLogging: enableLogging,
+    hashAlgorithm: algorithm,
+    hashFunction:  hash,
+}
+
+/* ----- Functions ----- */
 /**
  * Sanitise a string (particularly, a filepath) for Regex usage
  * 
@@ -19,9 +36,11 @@ export function regexEscape(string) {
     return string.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&').replace(/-/g, '\\x2d');
 }
 
-let enableLogging = false;
-let algorithm     = "md5";
-let hashTruncate  = 12;
+// Meant to normalise eleventt.after directories.output to dir.output style
+//./_site/ -> _site/
+export function stripPath(path) {
+    return path.replace(/^\.\//m, "");
+}
 
 /**
  * Wrapper function for using Node.JS's crypto
@@ -38,6 +57,11 @@ export function hash(content) {
     currentHash.end();
     return currentHash.read();
 }
+
+// Made for testing use
+export function _forceLogging(enable=true) {
+    enableLogging = enable;
+};
 
 /**
  * If logging is enabled, log to console
@@ -93,15 +117,21 @@ export function logRed(message) {
     _logColour(message, "31");
 }
 
-const defaultOptions = {
-    globstring:    "**/*",
-    globOptions:   {nodir: true},
-    extensions:    ["css", "js", "png", "jpg", "jpeg", "gif", "mp4", "ico"],
-    hashTruncate:  12,
-    runAsync:      true,
-    enableLogging: enableLogging,
-    hashAlgorithm: algorithm,
-    hashFunction:  hash,
+export function writeSync(outputPath, outputData) {
+    try {
+        fs.writeFileSync(outputPath, outputData);
+        logGreen(`[ACB] Added hashes to ${outputPath}`);
+    } catch (err) {
+        logRed(err);
+    }
+}
+
+export function writeAsync(outputPath, outputData) {
+    return writeFile(outputPath, outputData, {encoding: "utf-8"}).then(() => {
+        logGreen(`[ACB] Added hashes to ${outputPath}`);
+    }).catch(err => {
+        logRed(err);
+    })
 }
 
 /**
@@ -134,23 +164,6 @@ export function collectLocalAssets(globResults=[], outputDir, extensions=default
     return assetPaths;
 }
 
-export function writeSync(outputPath, outputData) {
-    try {
-        fs.writeFileSync(outputPath, outputData);
-        logGreen(`[ACB] Added hashes to ${outputPath}`);
-    } catch (err) {
-        logRed(err);
-    }
-}
-
-export function writeAsync(outputPath, outputData) {
-    return writeFile(outputPath, outputData, {encoding: "utf-8"}).then(() => {
-        logGreen(`[ACB] Added hashes to ${outputPath}`);
-    }).catch(err => {
-        logRed(err);
-    })
-}
-
 export function replaceAssetsInFile(fileData, filePath, assetPathsAndHashes, writeFunc) {
     let outputString  = fileData;
     let outputChanged = false;  // Check if any hashes have been added
@@ -180,17 +193,7 @@ export function replaceAssetsInFile(fileData, filePath, assetPathsAndHashes, wri
     }
 }
 
-// Meant to normalise eleventt.after directories.output to dir.output style
-//./_site/ -> _site/
-export function stripPath(path) {
-    return path.replace(/^\.\//m, "");
-}
-
-// Made for testing use
-export function _forceLogging(enable=true) {
-    enableLogging = enable;
-};
-
+/* ----- Main/plugin ----- */
 export default function(eleventyConfig, options=defaultOptions) {
     // Override default options with set options
     options = Object.assign(defaultOptions, options, {
