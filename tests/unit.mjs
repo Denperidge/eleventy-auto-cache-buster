@@ -6,7 +6,7 @@ import { cwd } from "process";
 import test from "ava";
 import md5 from "md5-hex";
 
-import { stripPath, hash, writeSync, collectLocalAssets, writeAsync } from "../11tyAutoCacheBuster.mjs";
+import { stripPath, hash, writeSync, collectLocalAssets, writeAsync, replaceAssetsInString } from "../11tyAutoCacheBuster.mjs";
 
 const TEST_STRING = "Here is a string! @@\n@@"
 const TEST_DIR = cwd() + "/tests/eleventy-test-out/";
@@ -144,3 +144,39 @@ test("collectLocalAssets options extensions & hashFunction are applied", t => {
 
     t.deepEqual(expected, collected);
 });
+
+test("replaceAssetsInString works as expected", t => {
+    /** @type {Array<{assetPath: string, assetHash: string}>} */
+    const assets = [
+        {
+            assetPath: "/image.png",
+            assetHash: "123"
+        },
+        {
+            assetPath: "/image.jpeg",
+            assetHash: "41352"
+        },
+        {
+            assetPath: "/stylesheet.css",
+            assetHash: "341"
+        },
+        {
+            assetPath: "/song.mp3",
+            assetHash: "3161"
+        }
+    ];
+    const input = `<html><body>
+        <img src="${assets[0].assetPath}"/>
+        <img src="${assets[1].assetPath}"/>
+        <link rel="stylesheet" href="${assets[2].assetPath}">
+        <audio src="${assets[3].assetPath}" />
+    </body></html>`;
+    const expectedOutput = `<html><body>
+        <img src="${assets[0].assetPath}?v=${assets[0].assetHash}"/>
+        <img src="${assets[1].assetPath}?v=${assets[1].assetHash}"/>
+        <link rel="stylesheet" href="${assets[2].assetPath}?v=${assets[2].assetHash}">
+        <audio src="${assets[3].assetPath}?v=${assets[3].assetHash}" />
+    </body></html>`;
+    const actualOutput = replaceAssetsInString(input, "replaceAssetsInString example", assets);
+    t.is(expectedOutput, actualOutput);
+})
