@@ -190,23 +190,18 @@ export function collectLocalAssets(globResults=[], outputDir, extensions=default
 }
 
 /**
- * Check if any of the assets are found in the passed file content/path
+ * Check if any of the assets are found in the passed file content,
  * and cache bust them as necessary.
- * If any assets are found, write the new contents to the passed file path
- * 
- * Its peculiar design (.e.g. having to pass a write function & fileData)
- * allows it to be used both for sync & async purposes
- * 
+ * If any cache busting took place, return the cache busted string.
+ * Else, return null
+ *  * 
  * @see collectLocalAssets
- * @see writeAsync
- * @see writeSync
  * 
  * @param {string} fileData original file contents (For example: "File\nContent")
- * @param {string} filePath path to write to (For example "path/file.json")
- * @param {Array<{assetPath: string, assetHash: string}>}} assetPathsAndHashes output from collectLocalAssets
- * @param {function} writeFunc write function to use
+ * @param {string} filePath file path that will be writen to (For example "path/file.json"). This is for logging purposes
+ * @param {Array<{assetPath: string, assetHash: string}>} assetPathsAndHashes output from collectLocalAssets
  */
-export function replaceAssetsInFile(fileData, filePath, assetPathsAndHashes, writeFunc) {
+export function replaceAssetsInString(fileData, filePath, assetPathsAndHashes) {
     let outputString  = fileData;
     let outputChanged = false;  // Check if any hashes have been added
     assetPathsAndHashes.forEach(({assetPath, assetHash}) => {
@@ -231,7 +226,9 @@ export function replaceAssetsInFile(fileData, filePath, assetPathsAndHashes, wri
         }
     })
     if (outputChanged) {
-        writeFunc(filePath, outputString);
+        return outputString;
+    } else {
+        return null;
     }
 }
 
@@ -270,8 +267,11 @@ export default function(eleventyConfig, options=defaultOptions) {
                             logRed(err);
                             throw err;
                         }
-                        // Save the output data
-                        replaceAssetsInFile(pageData, outputPath, assetPathsAndHashes, writeAsync);
+                        // If any cache busting took place, save the cache busted string to the file
+                        const cachebustedContents = replaceAssetsInString(pageData, outputPath, assetPathsAndHashes, writeAsync);
+                        if (cachebustedContents) {
+                            writeAsync(outputPath, cachebustedContents);
+                        }
                     });
                 }
             });
@@ -286,8 +286,11 @@ export default function(eleventyConfig, options=defaultOptions) {
             results.forEach(({inputPath, outputPath, url, content}) => {
                 if (!globOptions.ignore?.includes(outputPath)) { // -- Do not attempt to read explicitly ignored files as they may no longer exist!
                     const pageData = fs.readFileSync(outputPath, { encoding: "UTF-8" }); 
-                    // Save the output data
-                    replaceAssetsInFile(pageData, outputPath, assetPathsAndHashes, writeSync);
+                    // If any cache busting took place, save the cache busted string to the file
+                    const cachebustedContents = replaceAssetsInString(pageData, outputPath, assetPathsAndHashes);
+                    if (cachebustedContents) {
+                        writeSync(outputPath, cachebustedContents)
+                    }
                 }
             });
         });
